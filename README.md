@@ -4,7 +4,7 @@ PowerShell script structure
 This is a basic structure for organizing a set of PowerShell modules, like a custom way to organize.
 
 - **/Modules** the place for prefixed modules to avoid naming collisions.  
-Modules should be imported with prefix and only import modules from dependencies or global, this is the main set of modules for your scripts.
+Modules should be imported with prefix and only import modules from dependencies or global, this is the main set of modules.
 
 - **/Dependencies** when more than one module needs functionality it can be stored here.  
 Dependencies can choose not to bother with naming conventions, to prevent naming collisions and be distinguishable.
@@ -29,7 +29,7 @@ PS> Initialize-Modules
 ( PS> Initialize-\<PREFIX\>Modules )
 
 *List all modules with prefix*  
-PS> Get-ModuleList 
+PS> Get-ModuleList # ( Get-CGModuleList )
 
 *List all global modules, these should be autoloaded in a $env:PSModulePath*  
 PS> Get-GlobalList
@@ -39,3 +39,4 @@ PS> Get-DependencyList
 
 *Removes and imports modules*  
 PS> Restart-Initialization
+
