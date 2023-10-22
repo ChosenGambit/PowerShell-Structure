@@ -3,9 +3,9 @@ PowerShell script structure
 
 This is a basic structure for organizing a set of PowerShell modules, like a custom way to organize.
 
-**/Modules** the place for prefixed modules to avoid naming collisions.
-**/Dependencies** when more than one module needs functionality it can be stored here. 
-**/_Global** modules should follow auto-load naming convention
+- **/Modules** the place for prefixed modules to avoid naming collisions.
+- **/Dependencies** when more than one module needs functionality it can be stored here. 
+- **/_Global** modules should follow auto-load naming convention
 
 - Modules should be prefixed and only import modules from dependencies or global, this is the main set of modules
 - Dependencies can chose not to bother with naming conventions, to prevent naming collisions and distinguish
