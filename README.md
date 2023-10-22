@@ -34,7 +34,7 @@ PS> Get-ModuleList # ( Get-CGModuleList )
 *List all global modules, these should be autoloaded in a $env:PSModulePath*  
 PS> Get-GlobalList
 
-*List all dependency modules, these should be autoloaded in a $env:PSModulePath*  
+*List all dependency modules*  
 PS> Get-DependencyList 
 
 *Removes and imports modules*  
