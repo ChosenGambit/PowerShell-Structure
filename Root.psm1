@@ -95,6 +95,16 @@ function Remove-Modules {
     }
 }
 
+<#
+.SYNOPSIS    
+    Remove all modules and Initialize them again
+.DESCRIPTION        
+.INPUTS
+.OUTPUTS
+.EXAMPLE
+.LINK
+.NOTES
+#>
 function Restart-Initialization {
     Remove-Modules
     Initialize-Modules
@@ -111,20 +121,59 @@ function Get-CommandPrefix {
     return $mod.Prefix
 }
 
+<#
+.SYNOPSIS    
+    Output the global and prefixed modules from the Modules and _Global directories
+
+.DESCRIPTION        
+.INPUTS
+.OUTPUTS
+.EXAMPLE
+.LINK
+.NOTES
+#>
 function Get-ModuleList {
     
     [CmdletBinding()]
-    param()
+    param(
+        [bool]$WithoutGlobals = $False
+    )
 
     if ($PSBoundParameters['Verbose']) {
         $VerbosePreference = "Continue"
     } else {
         $VerbosePreference = "SilentlyContinue"
+    }    
+
+    # Print modules of this file (Root)
+    $ModuleName = $MyInvocation.MyCommand.ModuleName
+    $Module = Get-Module -Name $moduleName 
+    $ExportedFunctions = $module.ExportedCommands.Values
+
+    Write-Neutral "Module $($Module.Name) has functions:"
+    foreach($Function in $ExportedFunctions) {
+        $FunctionNameWithPrefix = Add-Prefix -FunctionName $Function.Name -Prefix $Module.Prefix
+        Write-Info " - $($FunctionNameWithPrefix) "
     }
 
+    #_Global dir
+    if ($WithoutGlobals -eq $False) {
+        Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Global)
+    }
+    # Modules dir
     Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Prefixed)
 }
 
+<#
+.SYNOPSIS    
+    Output the modules in the _Global directory   
+.DESCRIPTION        
+.INPUTS
+.OUTPUTS
+.EXAMPLE
+.LINK
+.NOTES
+#>
 function Get-GlobalList {
     
     [CmdletBinding()]
@@ -140,7 +189,15 @@ function Get-GlobalList {
 }
 
 <#
-# Will also initialize dependencies into the PS Session
+.SYNOPSIS    
+    Output the modules in the Dependencies directory   
+    This will import all modules beforehand to be able to read them properly
+.DESCRIPTION        
+.INPUTS
+.OUTPUTS
+.EXAMPLE
+.LINK
+.NOTES
 #>
 function Get-DependencyList {
 
@@ -174,6 +231,8 @@ function Inititialize-Dependencies {
     #Write-Alert "Initializing these dependencies directly is not recommended"
 }
 
+
+
 <#
 ## Invoke on modules
 #>
@@ -187,7 +246,6 @@ function Invoke-OnModules {
         [ModuleType]$ModuleType,
         [bool]$WithCommandPrefix = $True,
         [bool]$DisableNameChecking = $False
-
     )
 
     $SuccesCounter = 0
@@ -257,22 +315,7 @@ function Invoke-OnModules {
                 }
                 List {  
                     $OmitGlobalWriting = $True
-                    if ($script:Initialized) {                                              
-                        $Module = Get-Module -Name $ModulePath.BaseName
-                        Write-Neutral "Module $($Module.Name) has functions:"
-                        foreach ($CommandKey in $Module.ExportedCommands.Keys) {
-                            Write-Info " - $($CommandKey) "
-                        }                            
-                    }
-                    else {
-                        if ($CommandPrefix) {
-                            Write-Info "Use command: `"Initialize-$($CommandPrefix)Modules`" first"    
-                        }
-                        else {
-                            Write-Info "Use command: `"Initialize-Modules`" first"
-                        }                            
-                        return
-                    }
+                    Write-ModuleInfo -FileInfo $ModulePath
                 }
             }                
         }
@@ -285,7 +328,59 @@ function Invoke-OnModules {
     if ($OmitGlobalWriting -ne $True) {
         Write-Status "Success: #$($SuccesCounter), Error: #$($ErrorCounter)"
     }
-    
+}
+
+function Add-Prefix {
+
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$True)]
+        [string]$FunctionName,
+        [string]$Prefix
+    )
+    $Split = $FunctionName.Split("-")
+    $WithPrefix = ""
+    if ($Split.Count -eq 1) {
+        $WithPrefix = "$($Prefix)$($Split[0])"
+    }
+    elseif ($Split.Count -eq 2) { 
+        $WithPrefix = "$($Split[0])-$($Prefix)$($Split[1])"
+    }
+    elseif ($Split.Count -gt 2) { 
+         $WithPrefix = "$($Split[0])-$($Prefix)$($Split[1])"
+         for ($i = 2; $i -lt $Split.Count; $i++) {
+            $WithPrefix = $WithPrefix+"-$($Split[$i])"
+         }
+    }
+    else {
+        $WithPrefix = $FunctionName
+    }
+    return $WithPrefix
+}
+
+function Write-ModuleInfo {
+
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$True)]
+        [System.IO.FileInfo]$FileInfo
+    )
+
+    if ($script:Initialized) {                                              
+        $Module = Get-Module -Name $FileInfo.BaseName
+        Write-Neutral "Module $($Module.Name) has functions:"
+        foreach ($CommandKey in $Module.ExportedCommands.Keys) {
+            Write-Info " - $($CommandKey) "
+        }                            
+    }
+    else {
+        if ($CommandPrefix) {
+            Write-Info "Use command: `"Initialize-$($CommandPrefix)Modules`" first"    
+        }
+        else {
+            Write-Info "Use command: `"Initialize-Modules`" first"
+        }                                    
+    }
 }
 
 

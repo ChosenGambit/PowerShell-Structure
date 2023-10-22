@@ -46,9 +46,14 @@ Describe "Initialize-Modules" {
         It 'Should list dependency modules' {
              Get-CGDependencyList | Should -Contain ' - Initialize-Profile '
         }
+
+        AfterAll {
+            $global:WriteOutput = $False
+        }
     }
 
-    AfterAll {
+    AfterAll {   
+        Get-CGModuleList                  
         Remove-CGModules
         Remove-Module "Manifest"
     }
