@@ -15,7 +15,7 @@ Global modules should/could be auto-loaded and should follow naming conventions.
 
 ## Tested with
 Pester version: 5.5.0  
-PowerShell version: 5.1.22621.2428
+PowerShell version: 7.3.8
 
 ## How to use
 *Test script, use before importing anything*  
