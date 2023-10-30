@@ -124,7 +124,6 @@ function Get-CommandPrefix {
 <#
 .SYNOPSIS    
     Output the global and prefixed modules from the Modules and _Global directories
-
 .DESCRIPTION        
 .INPUTS
 .OUTPUTS
@@ -138,6 +137,8 @@ function Get-ModuleList {
     param(
         [bool]$WithoutGlobals = $False
     )
+
+    $global:WriteOutput = $True
 
     if ($PSBoundParameters['Verbose']) {
         $VerbosePreference = "Continue"
@@ -162,6 +163,8 @@ function Get-ModuleList {
     }
     # Modules dir
     Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Prefixed)
+
+    $global:WriteOutput = $False
 }
 
 <#

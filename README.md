@@ -15,7 +15,7 @@ Global modules should/could be auto-loaded and should follow naming conventions.
 
 ## Tested with
 Pester version: 5.5.0  
-PowerShell version: 7.3.8
+PowerShell version: 7.3.8   
 
 ## How to use
 *Test script, use before importing anything*  
@@ -40,3 +40,12 @@ PS> Get-DependencyList
 *Removes and imports modules*  
 PS> Restart-Initialization
 
+
+## Included Scripts
+***Examples are without prefix***   
+
+*Search inside Word Documents*
+PS> Search-InWordDoc -SearchKey "\<search string\>"   
+
+*Unzip all zipfiles into a seperate folder*
+PS> Expand-ZipFiles
