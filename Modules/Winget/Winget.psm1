@@ -111,7 +111,7 @@ function Install-WithWinget {
                 Write-Error "Package not found $AppName"
             }
             else {
-                #winget install --id $AppName --silent --force --accept-package-agreements --accept-source-agreements --source winget
+                winget install --id $AppName --silent --force --accept-package-agreements --accept-source-agreements --source winget
 
                 if ($LASTEXITCODE -eq 0) {
                     Write-Success "$AppName has been installed succesfully!"
