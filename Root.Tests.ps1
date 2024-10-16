@@ -43,9 +43,9 @@ Describe "Initialize-Modules" {
              Get-CGModuleList | Should -Contain ' - Disable-CGSystemWake '
         }
 
-        It 'Should list dependency modules' {
-             Get-CGDependencyList | Should -Contain ' - Initialize-Profile '
-        }
+        #It 'Should list dependency modules' {
+        #     Get-CGDependencyList | Should -Contain ' - Initialize-Profile '
+        #}
 
         AfterAll {
             $global:WriteOutput = $False

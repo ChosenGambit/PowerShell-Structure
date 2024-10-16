@@ -333,6 +333,9 @@ function Invoke-OnModules {
     }
 }
 
+<#
+# Adds prefix to a functionname, for displaying purpose
+#>
 function Add-Prefix {
 
     [CmdletBinding()]
