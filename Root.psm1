@@ -237,14 +237,14 @@ function Inititialize-Dependencies {
 
 
 <#
-## Invoke on modules
+## Invoke on modules, either Import, Remove or List
 #>
 function Invoke-OnModules {
 
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$True)]
-        [ModuleInvocation]$Invocation,
+        [ModuleInvocation]$Invocation,  # either Import, Remove or List
         [Parameter(Mandatory=$True)]
         [ModuleType]$ModuleType,
         [bool]$WithCommandPrefix = $True,
