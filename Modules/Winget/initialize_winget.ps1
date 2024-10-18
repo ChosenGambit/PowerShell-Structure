@@ -1,8 +1,7 @@
 
 # Change execution policy
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-Set-ExecutionPolicy -ExecutionPolicy ByPass -Scope CurrentUser 
-
+#[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
 <#
     .SYNOPSIS
         Check current winget version, downloads and installs when not found
@@ -12,20 +11,36 @@ function Check-WingetVersion {
 
     Write-Info "Checking winget version ... "
 
-    $output = winget search --id "Microsoft.PowerShell" --source winget    
-    Write-Host $output
-
-    if ($output.Trim() -eq "\") {
-        Write-Info "Winget might be outdated, trying to update Winget.."
-
-        Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle
-        Add-AppxPackage -Path $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle
-        winget upgrade --id Microsoft.DesktopAppInstaller
-    } 
-    else {
-        $wVersion = winget -v
-        Write-Success "Winget version: $wVersion"
+    try {
+        $output = winget search --id "Microsoft.PowerShell" --source winget    
+        Write-Host $output
+        
+        if ($output.Trim() -eq "\") {        
+            Get-WingetRemote
+        }
+        else {
+            $wVersion = winget -v
+            Write-Success "Winget version: $wVersion"
+        }
     }
+    catch {
+        Get-WingetRemote
+    }
+}
+
+<#
+    .SYNOPSIS
+       Download and install winget
+    .DESCRIPTION
+#>
+function Get-WingetRemote {
+    Write-Info "Downloading winget from Microsoft website"
+    Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle
+    Add-AppxPackage -Path $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle
+    winget upgrade --id Microsoft.AppInstaller
+
+    $wVersion = winget -v
+    Write-Success "Winget version: $wVersion"
 }
 
 <#
