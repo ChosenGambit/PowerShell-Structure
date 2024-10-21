@@ -1,13 +1,13 @@
 
 # Change execution policy
 #[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
+#Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
 <#
     .SYNOPSIS
         Check current winget version, downloads and installs when not found
     .DESCRIPTION
 #>
-function Check-WingetVersion {
+function Get-WingetVersion {
 
     Write-Info "Checking winget version ... "
 
@@ -51,23 +51,25 @@ function Get-WingetRemote {
 #>
 function Get-EnvModulePath {
 
+    #$Env:PSModulePath += ";C:\Program Files (x86)\WindowsPowerShell\Modules"
+    $paths = $Env:PSModulePath.Split(';')
+
+    # Remove duplicate paths
+    $uniquePaths = $paths | Select-Object -Unique
+
+    # Join the unique paths back into a single string
+    $Env:PSModulePath = [string]::Join(';', $uniquePaths)
+
     $newPath = "PowerShellModules"
-
-    foreach ($path in $env:PSModulePath.Split(";")) {
-        if ($path -match "Program Files") {
-            return $path
-        }
-    }
-
     # create new module path which we can access
-    if (-not (Test-Path "$HOME\PowershellModules")) {
+    if (-not (Test-Path "$HOME\$newPath")) {
         New-Item -Name "$newPath" -Path "$HOME" -ItemType Directory
         Write-Host -ForegroundColor Cyan "Directory created: $HOME\$newPath"
         
         # add env variable
         [Environment]::SetEnvironmentVariable("PSModulePath", "$env:PSModulePath;$HOME\$newPath", [EnvironmentVariableTarget]::User)
-        return "$HOME\$newPath"
     }
+    return "$HOME\$newPath"
 }
 
 <#
@@ -103,6 +105,5 @@ function Install-ModuleToDirectory {
     # Import the module from the custom directory.
     Import-Module -FullyQualifiedName (Join-Path $Destination $Name)
 
-    return (Get-Module)
 }
 

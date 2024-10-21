@@ -27,7 +27,7 @@ function Initialize-Winget {
 
     BEGIN {
         if ($InstallWinget -eq $true) {
-            Check-WingetVersion
+            Get-WingetVersion
         }
 
         if ($InstallWingetClient) {
@@ -88,17 +88,20 @@ function Install-WithWinget {
         if ($PSBoundParameters.ContainsKey('File')) {            
 
             # Read app names from the file
-            $FileAppNames = Get-Content -Path $File
+            try {
+                $FileAppNames = Get-Content -Path $File -ErrorAction Stop
 
-            $AppNames = $AppNames + $FileAppNames
-
-
-            Write-Info "List provided for installation:"
-            $AppNames.Split(" ") | ForEach-Object {
-               Write-Info " - $_ " 
+                $AppNames = $AppNames + $FileAppNames
+                
+                Write-Info "List provided for installation:"
+                $AppNames.Split(" ") | ForEach-Object {
+                    Write-Info " - $_ " 
+                }
             }
+            catch {
+                Write-Error "Could not find or read: $File"
+            }            
         }
-
     }
     PROCESS {
 
