@@ -25,7 +25,7 @@ function Get-WingetVersion {
 
         $currentVersion = winget -v
         $currentVersion = [version] $currentVersion.TrimStart("v")
-        Write-Info "Current winget version = $latestVersion"
+        Write-Info "Current winget version = $currentVersion"
 
         if ($latestVersion -gt $currentVersion) {
             Get-WingetRemote
