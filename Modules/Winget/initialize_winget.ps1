@@ -4,28 +4,37 @@
 #Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
 <#
     .SYNOPSIS
-        Check current winget version, downloads and installs when not found
+        Check current winget version, downloads and installs when not found or outdated
     .DESCRIPTION
 #>
 function Get-WingetVersion {
 
-    Write-Info "Checking winget version ... "
-
     try {
-        $output = winget search --id "Microsoft.PowerShell" --source winget    
-        Write-Host $output
-        
-        if ($output.Trim() -eq "\") {        
+
+        Write-Info "Checking latest winget version ... "
+
+        $apiUrl = "https://api.github.com/repos/microsoft/winget-cli/releases/latest"
+
+        # Send a request to the GitHub API
+        $response = Invoke-RestMethod -Uri $apiUrl -Headers @{ "User-Agent" = "PowerShell" }
+
+        # Extract the latest version tag
+        $latestVersion = $response.tag_name    
+        $latestVersion = [version] $latestVersion.TrimStart("v")
+        Write-Info "Latest winget version = $latestVersion"
+
+        $currentVersion = winget -v
+        $currentVersion = [version] $currentVersion.TrimStart("v")
+        Write-Info "Current winget version = $latestVersion"
+
+        if ($latestVersion -gt $currentVersion) {
             Get-WingetRemote
         }
-        else {
-            $wVersion = winget -v
-            Write-Success "Winget version: $wVersion"
-        }
-    }
-    catch {
+
+     }
+     catch {
         Get-WingetRemote
-    }
+     }
 }
 
 <#
