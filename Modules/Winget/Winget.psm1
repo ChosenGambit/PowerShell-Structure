@@ -27,6 +27,7 @@ function Initialize-Winget {
 
     BEGIN {
         if ($InstallWinget -eq $true) {
+            Get-XAMLVersion # prerequisite lib
             Get-WingetVersion
         }
 
@@ -36,7 +37,7 @@ function Initialize-Winget {
         }
 
         if ($UpdatePowerShell) {
-            Install-WingetApp -app "Microsoft.PowerShell"
+            Install-WithWinget -AppNames "Microsoft.PowerShell"
         }
 
         if ($DefaultPS7) {
