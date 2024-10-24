@@ -27,7 +27,7 @@ function Initialize-Modules {
     [CmdletBinding()]
     param( 
         [Parameter(Mandatory=$False)]
-        [bool]$OmitCommandPrefixCheck = $True
+        [bool]$CommandPrefixCheck = $False
     )    
 
     BEGIN { 
@@ -45,7 +45,7 @@ function Initialize-Modules {
         $Results = Invoke-OnModules -Invocation ([ModuleInvocation]::Import) -ModuleType ([ModuleType]::Global) -WithCommandPrefix $False
 
         # Check Command Prefix obligation
-        if (!$OmitCommandPrefixCheck) {
+        if ($CommandPrefixCheck) {
             $CommandPrefix = Get-CommandPrefix
             Write-Info "CommandPrefix found is $($CommandPrefix)"
             if ($CommandPrefix -eq $False) {
@@ -135,7 +135,7 @@ function Get-ModuleList {
     
     [CmdletBinding()]
     param(
-        [bool]$WithoutGlobals = $False
+        [bool]$WithGlobals = $True
     )
 
     $global:WriteOutput = $True
@@ -151,6 +151,7 @@ function Get-ModuleList {
     $Module = Get-Module -Name $moduleName 
     $ExportedFunctions = $module.ExportedCommands.Values
 
+    # this file
     Write-Neutral "Module $($Module.Name) has functions:"
     foreach($Function in $ExportedFunctions) {
         $FunctionNameWithPrefix = Add-Prefix -FunctionName $Function.Name -Prefix $Module.Prefix
@@ -158,9 +159,10 @@ function Get-ModuleList {
     }
 
     #_Global dir
-    if ($WithoutGlobals -eq $False) {
+    if ($WithGlobals -eq $True) {
         Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Global)
     }
+
     # Modules dir
     Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Prefixed)
 

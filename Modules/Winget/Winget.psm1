@@ -1,5 +1,7 @@
-﻿
-.$PSScriptRoot\initialize_winget.ps1
+﻿.$PSScriptRoot\MSUIXaml_Installer.ps1
+.$PSScriptRoot\Winget_Installer.ps1
+
+Import-Module $PSScriptRoot\..\..\Dependencies\ModuleSupport\ModuleHelperDependency.psm1
 
 <#
 .SYNOPSIS    
@@ -27,12 +29,16 @@ function Initialize-Winget {
 
     BEGIN {
         if ($InstallWinget -eq $true) {
-            Get-XAMLVersion # prerequisite lib
-            Get-WingetVersion
+            # prerequisite lib Microsoft.UI.Xaml, prefers NuGet version over Appx
+            Install-LatestMSUIXaml 
+
+            # prefers appx version over nuget
+            Install-LatestWinget
         }
 
         if ($InstallWingetClient) {
-            $ModulePath = Get-EnvModulePath
+            $ModulePath = Add-EnvModulePath
+            Remove-DuplicateEnvPaths
             Install-ModuleToDirectory -Name 'Microsoft.WinGet.Client' -Destination $ModulePath
         }
 
@@ -90,40 +96,91 @@ function Install-WithWinget {
 
             # Read app names from the file
             try {
-                $FileAppNames = Get-Content -Path $File -ErrorAction Stop
-
-                $AppNames = $AppNames + $FileAppNames
-                
-                Write-Info "List provided for installation:"
-                $AppNames.Split(" ") | ForEach-Object {
-                    Write-Info " - $_ " 
-                }
+                $FileAppNames = Get-Content -Path $File -ErrorAction SilentlyContinue
+                $AppNames = $AppNames + $FileAppNames                
             }
             catch {
                 Write-Error "Could not find or read: $File"
             }            
         }
+
+        # show what to install
+        Write-Info "List provided for installation:"
+        $AppNames.Split(" ") | ForEach-Object {
+            Write-Host " - $_ " 
+        }
+
+        # check how to use winget as NuGet package or via cli
+        $useCLI = $true
+        try {
+            $w = Get-Command winget -ErrorAction Stop # false when not available
+        }
+        catch {
+            $useCLI = $false
+        }
+        
     }
     PROCESS {
 
         foreach ($AppName in $AppNames) {
 
-            Write-Info "Trying to install $AppName"
-            $search = winget search $AppName
+            # using winget via cli
+            if ($useCLI) {
+                            
+                $search = winget search $AppName
 
-            if ($search -match "No package found") {
-                Write-Error "Package not found $AppName"
+                if ($search -match "No package found") {
+                    Write-Error "Package not found $AppName"
+                }
+                else {                
+
+                    Write-Info "Trying to install $AppName"
+               
+                    winget install --id $AppName --silent --force --accept-package-agreements --accept-source-agreements --source winget
+
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Success "$AppName has been installed succesfully!"
+                    }
+                    else {
+                        Write-Error "$AppName has failed to install"
+                    }
+                }  
             }
+            # using powershell
             else {
-                winget install --id $AppName --silent --force --accept-package-agreements --accept-source-agreements --source winget
+                $packages = Find-WingetPackage -Id $AppName -Source winget
 
-                if ($LASTEXITCODE -eq 0) {
-                    Write-Success "$AppName has been installed succesfully!"
+                if (!$packages) {
+                    Write-Error "No Packages found for $AppName"
+                    continue # next AppName
+                }
+
+                $toInstall = $null
+                Write-Info "Searching for $AppName"
+                foreach ($package in $packages) {
+                    if ($package.Id -eq $AppName) {
+                        Write-Info "Found $AppName"
+                        $toInstall = $package.Id
+                        break
+                    }
+                }
+
+                if ($toInstall -ine $null) {
+
+                    Write-Info "Trying to install $AppName"
+                    $result = Install-WinGetPackage -Id $toInstall
+
+                    if ($result.InstallerErrorCode -eq 0) {
+
+                        Write-Success "$AppName has been installed successfully!"
+                    } else {
+                        Write-Error "$AppName has failed to install"
+                    }
                 }
                 else {
-                    Write-Error "$AppName has failed to install"
-                }
-            }  
+                    Write-Info "Package could not be found for $AppName, please be more specific"
+                }             
+            }
         }
     }
 
