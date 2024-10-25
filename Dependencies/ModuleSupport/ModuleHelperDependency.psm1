@@ -9,7 +9,6 @@
 #>
 function Add-EnvModulePath {
 
-    [CmdletBinding()]
     param(
         [Parameter(
             Mandatory=$false, 
@@ -26,29 +25,24 @@ function Add-EnvModulePath {
         [String]$Name 
     )
 
-    BEGIN {
-        if ([string]::IsNullOrEmpty($Path)) {
-            $Path = $HOME
-        }
-        if ([string]::IsNullOrEmpty($Name)) {
-            $Name = "PowerShellModules"
-        }
+    if ([string]::IsNullOrEmpty($Path)) {
+        $Path = $HOME
     }
-    PROCESS {
-        # create new module path which we can access
-         $newPath = Join-Path -Path $Path -ChildPath $Name
+    if ([string]::IsNullOrEmpty($Name)) {
+        $Name = "PowerShellModules"
+    }
+    
+    # create new module path which we can access
+     $newPath = Join-Path -Path $Path -ChildPath $Name
 
-        if (-not (Test-Path $newPath)) {
-            New-Item -Name $Name -Path "$Path" -ItemType Directory
-            Write-Host -ForegroundColor Cyan "Directory created: $newPath"
+    if (! (Test-Path $newPath)) {
+        New-Item -Name $Name -Path "$Path" -ItemType Directory -InformationAction SilentlyContinue | Out-Null
+        Write-Info "Directory created: $newPath"
         
-            # add env variable
-            [Environment]::SetEnvironmentVariable("PSModulePath", "$env:PSModulePath;$newPath", [EnvironmentVariableTarget]::User)
-        }
+        # add env variable
+        [Environment]::SetEnvironmentVariable("PSModulePath", "$env:PSModulePath;$newPath", [EnvironmentVariableTarget]::User)
     }
-    END {
-        return $newPath
-    }            
+    
 }
 
 Export-ModuleMember -Function Add-EnvModulePath
@@ -84,27 +78,33 @@ function Install-ModuleToDirectory {
     param(
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
-        $Name,
+        [string]$Name,
 
         [Parameter(Mandatory = $true)]
-        [ValidateScript({ Test-Path $_ })]
         [ValidateNotNullOrEmpty()]
-        $Destination
+        [string]$Path
     )
 
     # Is the module already installed?
-    if (-not (Test-Path (Join-Path $Destination $Name))) {
+    
+    $fullModulePath = Join-Path -Path $Path -ChildPath $Name
+
+    Write-Host "Checking existence of $fullModulePath"
+
+    if (! (Test-Path $fullModulePath)) {
         # Install the module to the custom destination.
         Write-Info "Installing $Name"
-        Find-Module -Name $Name -Repository 'PSGallery' | Save-Module -Path $Destination
-        # Import the module from the custom directory.
-        Import-Module -FullyQualifiedName (Join-Path $Destination $Name)
-    }
-    else {
-        Write-Info "$Name is already installed"
-        Import-Module $Name #-Verbose
+        Find-Module -Name $Name -Repository 'PSGallery' | Save-Module -Path $Path
     }
 
+    # Import the module from the custom directory.
+    try {        
+        Import-Module -FullyQualifiedName $fullModulePath -ErrorAction SilentlyContinue
+    }
+    catch {
+        Write-Warning "Could not import $fullModulePath"
+    }
+    
     
 }
 

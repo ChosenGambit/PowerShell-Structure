@@ -12,6 +12,8 @@ $global:AlertBackgroundColor = "DarkRed"
 $global:StatusForegroundColor = "Gray"
 $global:StatusBackgroundColor = "DarkMagenta"
 $global:WriteOutput = $False
+$global:WriteToLogFile = $False
+$global:LogFilePath = "C:\"
 
 function Write-Colored {
     param( 
@@ -36,7 +38,12 @@ function Write-Colored {
         Write-Host @params $Str 
     }
     else {
-        Write-Output $Str
+        if ($global:WriteToLogFile) {
+            $str | Out-File -FilePath $(Join-Path -Path $global:LogFilePath -ChildPath "output.log") -Append
+        }
+        else {
+            Write-Output $Str
+        }        
     }
 }
 

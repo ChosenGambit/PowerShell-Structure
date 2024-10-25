@@ -66,7 +66,7 @@ function Add-MSUIXamlWithNuGet {
     $shouldInstall = $True
 
     try {        
-        $installed = Get-Package Microsoft.UI.Xaml
+        $installed = Get-Package Microsoft.UI.Xaml -ErrorAction SilentlyContinue
         if ($installed -is [Microsoft.PackageManagement.Packaging.SoftwareIdentity]) {
 
             $installedVersion = $installed.Version
@@ -87,7 +87,7 @@ function Add-MSUIXamlWithNuGet {
             Write-Info "Trying to install Microsoft.UI.Xaml"
             Install-PackageProvider -Name NuGet -Force
             Import-PackageProvider -Name NuGet -Force
-            Unregister-PackageSource -Name "nuget.org"
+            Unregister-PackageSource -Name "nuget.org" -ErrorAction SilentlyContinue
             Register-PackageSource -Name "nuget.org" -Location "https://www.nuget.org/api/v2" -ProviderName "NuGet" -Trusted    
             Install-Package "Microsoft.UI.Xaml" -Verbose
             return $True    
@@ -156,7 +156,7 @@ function Add-MSUIXamlManualAppx {
         }
     }
     catch {
-        Write-Host $_.Exception
+        Write-Error $_.Exception
         Write-Warning "Failed to install $packageName"
     }
 

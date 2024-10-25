@@ -1,6 +1,5 @@
 ﻿.$PSScriptRoot\MSUIXaml_Installer.ps1
 .$PSScriptRoot\Winget_Installer.ps1
-
 Import-Module $PSScriptRoot\..\..\Dependencies\ModuleSupport\ModuleHelperDependency.psm1
 
 <#
@@ -23,7 +22,7 @@ function Initialize-Winget {
     param(
         [Parameter(Mandatory=$false)] [bool]$InstallWinget=$true,
         [Parameter(Mandatory=$false)] [bool]$InstallWingetClient=$true,
-        [Parameter(Mandatory=$false)] [bool]$UpdatePowerShell=$false        
+        [Parameter(Mandatory=$false)] [bool]$UpdatePowerShell=$false     
         #[Parameter(Mandatory=$false)] [bool]$DefaultPS7=$false
     )
 
@@ -37,9 +36,9 @@ function Initialize-Winget {
         }
 
         if ($InstallWingetClient) {
-            $ModulePath = Add-EnvModulePath
+            Add-EnvModulePath         
+            Install-ModuleToDirectory -Name "Microsoft.WinGet.Client" -Path $(Join-Path -Path $HOME -ChildPath "PowerShellModules")
             Remove-DuplicateEnvPaths
-            Install-ModuleToDirectory -Name 'Microsoft.WinGet.Client' -Destination $ModulePath
         }
 
         if ($UpdatePowerShell) {
@@ -51,6 +50,7 @@ function Initialize-Winget {
                 
             }            
         }
+
     }
 }
 
@@ -107,7 +107,7 @@ function Install-WithWinget {
         # show what to install
         Write-Info "List provided for installation:"
         $AppNames.Split(" ") | ForEach-Object {
-            Write-Host " - $_ " 
+            Write-Info " - $_ " 
         }
 
         # check how to use winget as NuGet package or via cli
