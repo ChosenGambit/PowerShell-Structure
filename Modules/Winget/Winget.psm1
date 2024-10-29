@@ -190,5 +190,28 @@ function Install-WithWinget {
 }
 
 
+<#
+.SYNOPSIS   
+    Upgrades all winget apps as silently as possible when updates are found
+.DESCRIPTION        
+.INPUTS
+.OUTPUTS
+.EXAMPLE
+.LINK
+.NOTES
+#>
+
+function Update-WingetApps {
+
+    try {
+        winget upgrade -r --accept-package-agreements --accept-source-agreements --silent --nowarn --disable-interactivity --force
+    }
+    catch {
+        Write-Error $_.Exception
+    }
+}
+
+
 Export-ModuleMember -Function Initialize-Winget
 Export-ModuleMember -Function Install-WithWinget
+Export-ModuleMember -Function Update-WingetApps

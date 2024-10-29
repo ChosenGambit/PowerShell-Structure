@@ -116,9 +116,16 @@ function Add-WingetManualAppx {
         Write-Info "Trying to install winget via Microsoft website"
         Write-Info "Downloading winget from Microsoft website"
         Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle
+        Start-Sleep -Seconds 2
+
         Add-AppxPackage -Path $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle -ForceUpdateFromAnyVersion -ForceApplicationShutdown
+        Start-Sleep -Seconds 2
+
         winget source update --name msstore --accept-package-agreements
+        Start-Sleep -Seconds 2
+        
         winget upgrade --id Microsoft.AppInstaller --accept-package-agreements --accept-source-agreements
+        Start-Sleep -Seconds 2
 
         $wVersion = winget -v
         Write-Success "Winget version: $wVersion"
