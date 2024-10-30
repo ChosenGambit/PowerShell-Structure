@@ -39,11 +39,12 @@ function Write-Colored {
     }
     else {
         if ($global:WriteToLogFile) {
-            $str | Out-File -FilePath $(Join-Path -Path $global:LogFilePath -ChildPath "output.log") -Append
+            $Str = "[$(Get-Date -UFormat "%T" )] $($Str)" 
+            $Str | Out-File -FilePath $(Join-Path -Path $global:LogFilePath -ChildPath "output.log") -Append
             Write-Host @params $Str 
         }
         else {
-            Write-Output "[$(Get-Date)]" $Str
+            Write-Output $Str
         }        
     }
 }

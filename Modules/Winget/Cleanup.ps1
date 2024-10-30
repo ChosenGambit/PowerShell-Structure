@@ -10,12 +10,13 @@ function Remove-WingetInstallerFiles {
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.UI.Xaml*"    
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.DesktopAppInstaller_wingetcg.msixbundle*"
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.VCLibs_cg.appx*"    
-    Remove-Directories -Path (Join-Path $HOME "Downloads") -Name "Microsoft.UI.Xaml"
-    Remove-Directories -Path (Join-Path $HOME "PowerShellModules") -Name "Microsoft.WinGet.Client"
-    Remove-Directories -Path $HOME -Name "PowerShellModules"    
+    Remove-Directories -Path "$($HOME)\Downloads\Microsoft.UI.Xaml"
+    Remove-Directories -Path "$($HOME)\PowerShellModules\Microsoft.WinGet.Client"
+    Remove-Directories -Path "$($HOME)\PowerShellModules"
     Write-Info "Cleanup done"
     Write-Alert "You can now close this window"
 }
+
 
 <#
     Removes folders recursively in path with specified name
@@ -24,30 +25,33 @@ function Remove-Directories {
 
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$True)] $Path,
-        [Parameter(Mandatory=$True)] $Name
+        [Parameter(Mandatory=$True)] $Path
     )
 
-    $directories = Get-ChildItem -Path $path -Directory -Recurse -Force | Where-Object { $_.Name -eq $Name } 
-
-    foreach($dir in $directories) {
-
+    try {
+        Write-Info "Trying to remove directory: $($Path)"
+        Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
+    }
+    catch {
+        Write-Error $_
+        
+        <#
         try {
-            Write-Alert "Removing directory: $($dir.FullName)"
-            Remove-Item -Path $dir.FullName -Recurse -Force -ErrorAction Stop
+            takeown /f $Path /a /r /d y
+            icacls $Path /grant administrators:F
+            Remove-Item -Path $Path -Recurse -Force 
         }
         catch {
-             takeown /f $dir.FullName /a /d y
-             icacls $dir.FullName /grant administrators:F
-             Remove-Item -Path $dir.FullName -Recurse -Force 
+          
         }
-
+        #>
+        
     }
 }
 
 
 <#
-    Removes folders recursively in path with specified name
+    Removes files with name
 #>
 function Remove-Files {
 
