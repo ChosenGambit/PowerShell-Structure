@@ -1,6 +1,17 @@
-﻿.$PSScriptRoot\MSUIXaml_Installer.ps1
-.$PSScriptRoot\Winget_Installer.ps1
-Import-Module $PSScriptRoot\..\..\Dependencies\ModuleSupport\ModuleHelperDependency.psm1
+﻿# for checking and installing Microsoft.UI.Xaml prequisite
+.$PSScriptRoot\Install_MSUIXaml.ps1 
+
+# for checking and installing VCLibs prequisite
+.$PSScriptRoot\Install_VCLibs.ps1 
+
+# for installing winget on the local system
+.$PSScriptRoot\Install_Winget.ps1
+
+# for installing apps using winget CLI
+.$PSScriptRoot\Install_WingetApps.ps1
+
+# Helper module that helps installing PowerShell modules from remote
+Import-Module $PSScriptRoot\..\..\Dependencies\ModuleSupport\PSModuleHelper.psm1
 
 <#
 .SYNOPSIS    
@@ -21,20 +32,26 @@ function Initialize-Winget {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false)] [bool]$InstallWinget=$true,
-        [Parameter(Mandatory=$false)] [bool]$InstallWingetClient=$true,
+        [Parameter(Mandatory=$false)] [bool]$InstallWingetClient=$false,
         [Parameter(Mandatory=$false)] [bool]$UpdatePowerShell=$false     
         #[Parameter(Mandatory=$false)] [bool]$DefaultPS7=$false
     )
 
     BEGIN {
+
         if ($InstallWinget -eq $true) {
-            # prerequisite lib Microsoft.UI.Xaml, prefers NuGet version over Appx
+            
+            # prerequisite Microsoft.VCLibs
+            Install-LatestVCLibs
+
+            # prerequisite lib Microsoft.UI.Xaml, prefers NuGet version over Appx            
             Install-LatestMSUIXaml 
 
             # prefers appx version over nuget
-            Install-LatestWinget
+            $installed = Install-LatestWinget
         }
 
+        # works together with PSGallery version of winget
         if ($InstallWingetClient) {
             Add-EnvModulePath         
             Install-ModuleToDirectory -Name "Microsoft.WinGet.Client" -Path $(Join-Path -Path $HOME -ChildPath "PowerShellModules")
@@ -50,7 +67,6 @@ function Initialize-Winget {
                 
             }            
         }
-
     }
 }
 
@@ -92,10 +108,10 @@ function Install-WithWinget {
 
     BEGIN {
 
-        if ($PSBoundParameters.ContainsKey('File')) {            
-
-            # Read app names from the file
-            try {
+        # Merge file with appNames into one array
+        if ($PSBoundParameters.ContainsKey('File')) {      
+              
+          try {
                 $FileAppNames = Get-Content -Path $File -ErrorAction SilentlyContinue
                 $AppNames = $AppNames + $FileAppNames                
             }
@@ -114,6 +130,7 @@ function Install-WithWinget {
         $useCLI = $true
         try {
             $w = Get-Command winget -ErrorAction Stop # false when not available
+            Write-Info "Using winget cli"
         }
         catch {
             $useCLI = $false
@@ -125,61 +142,14 @@ function Install-WithWinget {
         foreach ($AppName in $AppNames) {
 
             # using winget via cli
-            if ($useCLI) {
-                            
-                $search = winget search $AppName
-
-                if ($search -match "No package found") {
-                    Write-Error "Package not found $AppName"
-                }
-                else {                
-
-                    Write-Info "Trying to install $AppName"
-               
-                    winget install --id $AppName --silent --force --accept-package-agreements --accept-source-agreements --source winget
-
-                    if ($LASTEXITCODE -eq 0) {
-                        Write-Success "$AppName has been installed succesfully!"
-                    }
-                    else {
-                        Write-Error "$AppName has failed to install"
-                    }
-                }  
+            if ($useCLI) {                            
+                Use-CLIWingetInstall -AppName $AppName
             }
             # using powershell
             else {
-                $packages = Find-WingetPackage -Id $AppName -Source winget
-
-                if (!$packages) {
-                    Write-Error "No Packages found for $AppName"
-                    continue # next AppName
-                }
-
-                $toInstall = $null
-                Write-Info "Searching for $AppName"
-                foreach ($package in $packages) {
-                    if ($package.Id -eq $AppName) {
-                        Write-Info "Found $AppName"
-                        $toInstall = $package.Id
-                        break
-                    }
-                }
-
-                if ($toInstall -ine $null) {
-
-                    Write-Info "Trying to install $AppName"
-                    $result = Install-WinGetPackage -Id $toInstall
-
-                    if ($result.InstallerErrorCode -eq 0) {
-
-                        Write-Success "$AppName has been installed successfully!"
-                    } else {
-                        Write-Error "$AppName has failed to install"
-                    }
-                }
-                else {
-                    Write-Info "Package could not be found for $AppName, please be more specific"
-                }             
+                Write-Alert "winget was not installed correctly"
+                return
+                #Use-PSWingetInstall -AppName $AppName         
             }
         }
     }

@@ -1,10 +1,8 @@
-
 <#
     .SYNOPSIS
         Check current winget version, downloads and installs when not found or outdated
     .DESCRIPTION
 #>
-
 function Install-LatestWinget {
 
     [OutputType([bool])]
@@ -14,21 +12,25 @@ function Install-LatestWinget {
     $currentVersion = Get-CurrentWingetCLI
 
     if ($latestVersion -ne $null -and $currentVersion -ne $null) {
-        if ($latestVersion -eq $currentVersion) {
 
-            Write-Info "The latest winget seems to be installed"
-            return           
+        $latestVersion = [version] $latestVersion
+        $currentVersion = [version] $currentVersion
+
+        if ($latestVersion -le $currentVersion) {
+            Write-Info "The latest winget version seems to be installed"
+            return $true          
         }
     }
-
+  
     Write-Info "Trying to install winget"
     
     $success = Add-WingetManualAppx
-    if (! $success) {
-        Add-WingetNuget
-    }
+    
+    return $success
+    #if (! $success) {
+    #    Add-WingetPSGallery
+    #}
 }
-
 
 <#
     .SYNOPSIS
@@ -85,7 +87,7 @@ function Get-CurrentWingetCLI {
        Install winget via NuGet
     .DESCRIPTION
 #>
-function Add-WingetNuget {
+function Add-WingetPSGallery {
     [OutputType([bool])]
     param()
     try {
@@ -102,7 +104,6 @@ function Add-WingetNuget {
     return $false
 }
 
-
 <#
     .SYNOPSIS
        Download and install winget manually
@@ -115,7 +116,7 @@ function Add-WingetManualAppx {
     try {
         Write-Info "Trying to install winget via Microsoft website"
         Write-Info "Downloading winget from Microsoft website"
-        Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle
+        Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile $HOME\Downloads\Microsoft.DesktopAppInstaller_wingetcg.msixbundle
         Start-Sleep -Seconds 2
 
         Add-AppxPackage -Path $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle -ForceUpdateFromAnyVersion -ForceApplicationShutdown

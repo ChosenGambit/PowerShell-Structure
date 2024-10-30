@@ -40,9 +40,10 @@ function Write-Colored {
     else {
         if ($global:WriteToLogFile) {
             $str | Out-File -FilePath $(Join-Path -Path $global:LogFilePath -ChildPath "output.log") -Append
+            Write-Host @params $Str 
         }
         else {
-            Write-Output $Str
+            Write-Output "[$(Get-Date)]" $Str
         }        
     }
 }

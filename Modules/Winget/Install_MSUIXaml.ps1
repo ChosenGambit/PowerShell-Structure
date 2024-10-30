@@ -1,3 +1,6 @@
+# for finding appx packages locally
+.$PSScriptRoot\..\..\Dependencies\AppxSupport\AppxHelper.ps1
+
 <#
     .SYNOPSIS
         Tries to install microsoft.ui.xaml with nuget
@@ -7,14 +10,60 @@
 #>
 function Install-LatestMSUIXaml {
 
+    # get latest version available online
     $latestVersion = Get-LatestMSUIXaml
 
-    $success = Add-MSUIXamlWithNuGet -LatestVersion $latestVersion
+    # check available local version (nuget package)
+    $found = Find-LocalMSUIXaml -LatestVersion $latestVersion
 
-    if (! $success) {
-        Write-Info "Failed to install via NuGet. Try to install Microsoft.UI.XAML manually"
-        Add-MSUIXamlManualAppx -LatestVersion $latestVersion
-    }  
+    if (! $found) {
+        # install Microsoft.UI.Xaml with NuGet
+        $success = Add-MSUIXamlWithNuGet 
+        if (! $success) {
+            Write-Info "Failed to install via NuGet. Now trying to install Microsoft.UI.XAML manually (msstore)"
+            Add-MSUIXamlManualAppx -LatestVersion $latestVersion
+        }  
+    }
+}
+
+<# 
+    Returns true when found locally 
+#>
+function Find-LocalMSUIXaml { 
+
+    [OutputType([bool])]
+    param(
+        [version] $LatestVersion
+    )
+
+    $installed = Get-Package Microsoft.UI.Xaml -ErrorAction SilentlyContinue
+    if ($installed -is [Microsoft.PackageManagement.Packaging.SoftwareIdentity]) {
+
+        $installedVersion = $installed.Version
+        $installedName = $installed.Name
+        Write-Info "Found $installedName $installedVersion locally (NuGet)"
+            
+        # when current equals latest version  
+        if ($LatestVersion -ne $null -and $installedVersion -ne $null) {
+            if ($LatestVersion -eq $installedVersion) {
+                Write-Info "$($installedName) $($installedVersion) is up to date"
+                return $True
+            }
+        }
+    }
+    else {
+        
+        $packageName = "Microsoft.UI.Xaml.$($LatestVersion.Major).$($LatestVersion.Minor)"
+        $found = Find-LocalAppxPackage -PackageName $packageName
+
+        if ($found) {
+            Write-Info "$($packageName) is up to date"
+            return $true
+        }
+        
+    }
+    Write-Info "Microsoft.UI.Xaml could not be found on the local system"
+    return $false
 }
 
 <# 
@@ -45,8 +94,7 @@ function Get-LatestMSUIXaml {
         }
 
         $fullName = $packageName+" "+$version
-        Write-Info "Latest version = $fullName"
-        
+        Write-Info "Latest version = $fullName"        
     }
 
     catch {
@@ -55,80 +103,36 @@ function Get-LatestMSUIXaml {
     return $version
 }
 
-
-<# Helper to add Microsoft.UI.Xaml with NuGet #>
+<# 
+    Helper to add Microsoft.UI.Xaml with NuGet 
+#>
 function Add-MSUIXamlWithNuGet {
 
-    param(
-        $LatestVersion
-    )
-    
-    $shouldInstall = $True
-
-    try {        
-        $installed = Get-Package Microsoft.UI.Xaml -ErrorAction SilentlyContinue
-        if ($installed -is [Microsoft.PackageManagement.Packaging.SoftwareIdentity]) {
-
-            $installedVersion = $installed.Version
-            $installedName = $installed.Name
-            Write-Info "$installedName $installedVersion is installed"
-            
-            # when current equals latest version  
-            if ($LatestVersion -ne $null -and $installedVersion -ne $null) {
-                if ($latestVersion -eq $installedVersion) {
-                    Write-Info "Microsoft.UI.Xaml version is up to date"
-                    $shouldInstall = $False
-                    return $True
-                }
-            }
-        }
-
-        if ($shouldInstall -eq $True) {
-            Write-Info "Trying to install Microsoft.UI.Xaml"
-            Install-PackageProvider -Name NuGet -Force
-            Import-PackageProvider -Name NuGet -Force
-            Unregister-PackageSource -Name "nuget.org" -ErrorAction SilentlyContinue
-            Register-PackageSource -Name "nuget.org" -Location "https://www.nuget.org/api/v2" -ProviderName "NuGet" -Trusted    
-            Install-Package "Microsoft.UI.Xaml" -Verbose
-            return $True    
-        }
+    try {            
+        Write-Info "Trying to install Microsoft.UI.Xaml"
+        Install-PackageProvider -Name NuGet -Force
+        Import-PackageProvider -Name NuGet -Force
+        Unregister-PackageSource -Name "nuget.org" -ErrorAction SilentlyContinue
+        Register-PackageSource -Name "nuget.org" -Location "https://www.nuget.org/api/v2" -ProviderName "NuGet" -Trusted    
+        Install-Package "Microsoft.UI.Xaml" -Verbose
+        return $True            
     }
     catch {
         Write-Error $_.Exception
-        return $False
-        
+        return $False        
     }
     return $False
 }
 
-<# Helper to add Microsoft.UI.Xaml with manually downloading and installing Appx #>
+<# 
+    Helper to add Microsoft.UI.Xaml with manually downloading and installing Appx 
+#>
 function Add-MSUIXamlManualAppx {
 
     param(
         $LatestVersion
     )
 
-    $fullName = ""
-    $packageName = ""
-
-    <# ## Disabled, because we always want to try to download the latest version
-    # check installed version
-    try {
-        Write-Info "Checking currently installed version of $packageName"
-        $found = $false
-        $installedList = Get-AppxPackage | Where-Object { $_.Name -ilike "*$packageName*" } | Select-Object -ExpandProperty Name 
-        foreach($installed in $installedList) {
-            if ($installed -ilike "*$packageName*") {
-                $found = $true
-                Write-Info "Found $installed"
-            }
-        }
-    }
-    catch {
-        Write-Error $_.Exception
-    }
-    #>
-    
     # download and install microsoft.ui.xaml
     try {
         $found = $false
@@ -141,6 +145,7 @@ function Add-MSUIXamlManualAppx {
             # extract
             $extractPath = "$HOME\Downloads\Microsoft.UI.Xaml_cg_$LatestVersion"
             Expand-Archive -Path $zip -DestinationPath $extractPath -Force -ErrorAction Continue
+            Start-Sleep -Seconds 2
 
             $filePath = "$extractPath\tools\AppX\x64\Release"
             $uiXAMLFile = Get-ChildItem -Path $filePath -Filter "*.appx" | Select-Object -First 1

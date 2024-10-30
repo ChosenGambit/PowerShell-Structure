@@ -9,9 +9,12 @@ function Remove-WingetInstallerFiles {
 
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.UI.Xaml*"    
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.DesktopAppInstaller_wingetcg.msixbundle*"
-    Remove-Directories -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.UI.Xaml*"
+    Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.VCLibs_cg.appx*"    
+    Remove-Directories -Path (Join-Path $HOME "Downloads") -Name "Microsoft.UI.Xaml"
     Remove-Directories -Path (Join-Path $HOME "PowerShellModules") -Name "Microsoft.WinGet.Client"
     Remove-Directories -Path $HOME -Name "PowerShellModules"    
+    Write-Info "Cleanup done"
+    Write-Alert "You can now close this window"
 }
 
 <#
@@ -25,7 +28,7 @@ function Remove-Directories {
         [Parameter(Mandatory=$True)] $Name
     )
 
-    $directories = Get-ChildItem -Path $path -Directory -Recurse -Force | Where-Object { $_.Name -like $Name } 
+    $directories = Get-ChildItem -Path $path -Directory -Recurse -Force | Where-Object { $_.Name -eq $Name } 
 
     foreach($dir in $directories) {
 
