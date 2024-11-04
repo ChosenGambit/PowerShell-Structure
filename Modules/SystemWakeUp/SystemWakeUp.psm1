@@ -40,14 +40,12 @@ function Disable-SystemWake {
         if (!$OmitDisablingHardwareWake) { 
             Write-Neutral 'Trying to turn off devices that can wake the system up'
             Disable-HardwareWake 
-        }
-       
+        }       
        
         if (!$OmitDisablingMaintenanceWake) {
             Write-Neutral 'Trying to turn off maintenance wake up'
             Disable-MaintenanceWake 
-        }
-           
+        }           
         
         if (!$OmitDisablingScheduledWake) { 
             Write-Neutral 'Trying to disabled scheduled tasks that can wake the system up'
@@ -95,7 +93,7 @@ function Disable-PowerWake {
  
     $waketimers = powercfg -list | Select-String 'GUID'
  
-    if ($waketimers -ne $null) {
+    if ($null -ne $waketimers) {
         foreach($waketimer in $waketimers) {
             try {
                 $guid = $waketimer -replace '^.*:\s+(\S+?)\s+.*$', '$1'
@@ -118,9 +116,9 @@ function Disable-HardwareWake {
     $devices = powercfg -devicequery wake_armed
  
     # Iterate over devices
-    if ($devices -ne $null) {
+    if ($null -ne $devices) {
         foreach ($device in $devices) {
-            if ($device -inotmatch 'NONE' -and $device -ne $null -and $device -ne '') {
+            if ($device -inotmatch 'NONE' -and $null -ne $device -and $device -ne '') {
                 Write-Info "Found device: $($device)"
                 try {
                     powercfg -devicedisablewake $device
@@ -163,7 +161,7 @@ function Disable-ScheduledWake {
          
     $tasks = Get-ScheduledTask | Where-Object {$_.Settings.WakeToRun -eq $true -and $_.State -ne 'Disabled'}
  
-    if ($tasks -ne $null) {
+    if ($null -ne $tasks) {
         foreach ($task in $tasks) {  
             try {
                 $task.Settings.WakeToRun = $false

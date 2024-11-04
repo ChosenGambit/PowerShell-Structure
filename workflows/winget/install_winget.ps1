@@ -9,7 +9,6 @@ $global:WriteOutput = $True
 $global:WriteToLogFile = $True
 $global:LogFilePath = "$PSScriptRoot\..\..\.."
 Write-Info "--[Starting Install Script @ $(Get-Date)]--" 
-winget source update --accept-source-agreements
 Initialize-Winget -InstallPrerequisites $false -InstallWinget $true
 [System.GC]::Collect()
 

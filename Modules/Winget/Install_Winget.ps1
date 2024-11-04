@@ -11,14 +11,14 @@ function Install-LatestWinget {
     $latestVersion = Get-LatestWingetVersion
     $currentVersion = Get-CurrentWingetCLI
 
-    if ($latestVersion -ne $null -and $currentVersion -ne $null) {
+    if ($null -ne $latestVersion -and $null -ne $currentVersion) {
 
         $latestVersion = [version] $latestVersion
         $currentVersion = [version] $currentVersion
 
         if ($latestVersion -le $currentVersion) {
             Write-Info "The latest winget version seems to be installed"
-            return $true          
+            return $true
         }
     }
   

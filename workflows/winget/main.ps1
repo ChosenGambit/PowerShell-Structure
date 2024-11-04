@@ -11,10 +11,10 @@ $install_winget_apps_script = "$PSScriptRoot\install_winget_apps.ps1"
 $clean_script = "$PSScriptRoot\clean.ps1"
 
 # Open a new terminal window and execute the install script
-$prerequisites_process = Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "& {Start-Sleep -Seconds 1; & '$prerequisites_script'; exit}" -PassThru
+$prerequisites_process = Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "& {Start-Sleep -Seconds 1; & '$prerequisites_script'; exit}" -PassThru 
 
 # Wait for the prerequisites script to complete
-$prerequisites_process  | Wait-Process
+$prerequisites_process | Wait-Process
 
 # Open a new terminal window and execute the install winget script
 $install_winget_script = Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "& {Start-Sleep -Seconds 1; & '$install_winget_script'; exit}" -PassThru
