@@ -150,13 +150,14 @@ function Add-MSUIXamlManualAppx {
 
     # download and install microsoft.ui.xaml
     try {
-        Write-Info "Downloading $packageName"
+        Write-Info "Downloading Microsoft.UI.Xaml $LatestVersion"
         $url = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/$LatestVersion"
         $zip = "$HOME\Downloads\Microsoft.UI.Xaml.zip"
         Invoke-WebRequest -Uri $url -OutFile $zip
         Start-Sleep -Seconds 2
 
         # extract
+        Write-Info "Trying to extract Microsoft.UI.Xaml"
         $extractPath = "$HOME\Downloads\Microsoft.UI.Xaml_cg_$LatestVersion"
         Expand-Archive -Path $zip -DestinationPath $extractPath -Force -ErrorAction Continue
         Start-Sleep -Seconds 2
@@ -165,7 +166,7 @@ function Add-MSUIXamlManualAppx {
         $uiXAMLFile = Get-ChildItem -Path $filePath -Filter "*.appx" | Select-Object -First 1
         $uiXAMLFullPath = Join-Path -Path $filePath -ChildPath $uiXAMLFile
 
-        Write-Host "Trying to install $uiXAMLFullPath"
+        Write-Info "Trying to install $uiXAMLFullPath"
         Add-AppxPackage -Path $uiXAMLFullPath -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Verbose
 
         Start-Process -FilePath "wsreset.exe" -NoNewWindow -ErrorAction SilentlyContinue

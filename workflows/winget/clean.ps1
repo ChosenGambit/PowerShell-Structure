@@ -17,9 +17,9 @@ function Remove-WingetInstallerFiles {
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.UI.Xaml*"    
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.DesktopAppInstaller_wingetcg.msixbundle*"
     Remove-Files -Path (Join-Path $HOME "Downloads") -Name "*Microsoft.VCLibs_cg.appx*"    
-    Remove-Directories -Path "$($HOME)\Downloads\Microsoft.UI.Xaml"
-    Remove-Directories -Path "$($HOME)\PowerShellModules\Microsoft.WinGet.Client"
-    Remove-Directories -Path "$($HOME)\PowerShellModules"
+    Remove-Directories -Path "$($HOME)\Downloads" -Name "*Microsoft.UI.Xaml*"
+    Remove-Directories -Path "$($HOME)\PowerShellModules" -Name "Microsoft.WinGet.Client"
+    Remove-Directories -Path "$($HOME)" -Name "PowerShellModules"
     Write-Info "Cleanup done"
     Write-Alert "You can now close this window"
 }
@@ -32,15 +32,18 @@ function Remove-Directories {
 
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$True)] $Path
+        [Parameter(Mandatory=$True)] $Path,
+        [Parameter(Mandatory=$True)] $Name
     )
 
     try {
         Write-Info "Trying to remove directory: $($Path)"
-        Remove-Item -Path $Path -Recurse -Force -ErrorAction Stop
+        Get-ChildItem -Path $Path -Directory | Where-Object { $_.Name -like $Name } | ForEach-Object {
+            Remove-Item -Path $_.FullName -Recurse -Force
+        }
     }
     catch {
-        Write-Error $_
+        #Write-Error $_
         
         <#
         try {
@@ -77,6 +80,7 @@ function Remove-Files {
             Remove-Item -Path $file.FullName -Recurse -Force
         }
         catch {
+            Write-Error "Could not remove $($file.FullName)"
         }
 
     }
