@@ -11,26 +11,26 @@
 .$PSScriptRoot\Install_WingetApps.ps1
 
 # Helper module that helps installing PowerShell modules from remote
-Import-Module $PSScriptRoot\..\..\Dependencies\ModuleSupport\PSModuleHelper.psm1
+Import-Module $PSScriptRoot\..\..\Helpers\ModuleSupport\PSModuleHelper.psm1
 
-<#
-.SYNOPSIS    
-    Initialized the module prerequisites
-.DESCRIPTION        
-    Use before using Install-WithWinget 
-.INPUTS
-   
-.OUTPUTS
-   
-.EXAMPLE
-   
-.LINK
-.NOTES
-#>
+
 function Initialize-Winget {
+
+    <#
+    .SYNOPSIS    
+        Initialized the module prerequisites
+    .DESCRIPTION        
+        Use before using Install-WithWinget 
+    .INPUTS   
+    .OUTPUTS   
+    .EXAMPLE   
+    .LINK
+    .NOTES
+    #>
     
     [CmdletBinding()]
     param(
+        [Parameter(Mandatory=$false)] [bool]$InstallPrerequisites=$true,
         [Parameter(Mandatory=$false)] [bool]$InstallWinget=$true,
         [Parameter(Mandatory=$false)] [bool]$InstallWingetClient=$false,
         [Parameter(Mandatory=$false)] [bool]$UpdatePowerShell=$false     
@@ -39,13 +39,15 @@ function Initialize-Winget {
 
     BEGIN {
 
-        if ($InstallWinget -eq $true) {
-            
+        if ($InstallPrerequisites -eq $true) {
             # prerequisite Microsoft.VCLibs
             Install-LatestVCLibs
 
             # prerequisite lib Microsoft.UI.Xaml, prefers NuGet version over Appx            
             Install-LatestMSUIXaml 
+        }
+
+        if ($InstallWinget -eq $true) {         
 
             # prefers appx version over nuget
             $installed = Install-LatestWinget
@@ -70,24 +72,23 @@ function Initialize-Winget {
     }
 }
 
-<#
-.SYNOPSIS   
-    Install a app by using winget
-    Use Initialize-Winget if this function does not work out of the box
-   
-.DESCRIPTION        
-    
-.INPUTS
-   Install-WithWinget -AppNames "app1", "app2", "app3"
-   Install-WithWinget -File "apps.txt"
-.OUTPUTS
-   winget installation
-.EXAMPLE
-   
-.LINK
-.NOTES
-#>
+
 function Install-WithWinget {
+
+    <#
+    .SYNOPSIS   
+        Install a app by using winget
+        Use Initialize-Winget if this function does not work out of the box
+    .DESCRIPTION        
+    .INPUTS
+       Install-WithWinget -AppNames "app1", "app2", "app3"
+       Install-WithWinget -File "apps.txt"
+    .OUTPUTS
+       winget installation
+    .EXAMPLE
+    .LINK
+    .NOTES
+    #>
 
     [CmdletBinding()]
     param(
@@ -120,10 +121,16 @@ function Install-WithWinget {
             }            
         }
 
-        # show what to install
         Write-Info "List provided for installation:"
-        $AppNames.Split(" ") | ForEach-Object {
-            Write-Info " - $_ " 
+
+        # show what to install
+        if ($AppNames -ne $null) {            
+            $AppNames.Split(" ") | ForEach-Object {
+                Write-Info " - $_ " 
+            }
+        }        
+        else {
+            Write-Alert "No apps provided for installation"
         }
 
         # check how to use winget as NuGet package or via cli
@@ -145,10 +152,8 @@ function Install-WithWinget {
             if ($useCLI) {                            
                 Use-CLIWingetInstall -AppName $AppName
             }
-            # using powershell
+
             else {
-                Write-Alert "winget was not installed correctly"
-                return
                 #Use-PSWingetInstall -AppName $AppName         
             }
         }
@@ -159,19 +164,18 @@ function Install-WithWinget {
     }
 }
 
-
-<#
-.SYNOPSIS   
-    Upgrades all winget apps as silently as possible when updates are found
-.DESCRIPTION        
-.INPUTS
-.OUTPUTS
-.EXAMPLE
-.LINK
-.NOTES
-#>
-
 function Update-WingetApps {
+
+    <#
+    .SYNOPSIS   
+        Upgrades all winget apps as silently as possible when updates are found
+    .DESCRIPTION        
+    .INPUTS
+    .OUTPUTS
+    .EXAMPLE
+    .LINK
+    .NOTES
+    #>
 
     try {
         winget upgrade -r --accept-package-agreements --accept-source-agreements --silent --nowarn --disable-interactivity --force

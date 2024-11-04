@@ -1,3 +1,10 @@
+Import-Module $PSScriptRoot\..\..\Root.psm1
+Initialize-Modules
+$global:WriteOutput = $True
+$global:WriteToLogFile = $True
+$global:LogFilePath = "$PSScriptRoot\..\..\.."
+Write-Info "--[Starting Clean Script @ $(Get-Date)]--" 
+
 <#    
     .SYNOPSIS
         Clean up files that are used when initializing winget installer
@@ -74,5 +81,6 @@ function Remove-Files {
 
     }
 }
-#takeown /f "C:\Users\Timon\PowerShellModules\Microsoft.WinGet.Client\1.9.2411\net48\Microsoft.WinGet.Client.Cmdlets.dll"
-#icacls "C:\Users\Timon\PowerShellModules\Microsoft.WinGet.Client\1.9.2411\net48\Microsoft.WinGet.Client.Cmdlets.dll" /grant Administrators:F
+
+
+Remove-WingetInstallerFiles

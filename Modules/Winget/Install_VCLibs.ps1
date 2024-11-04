@@ -1,5 +1,5 @@
 # for finding appx packages locally
-.$PSScriptRoot\..\..\Dependencies\AppxSupport\AppxHelper.ps1
+.$PSScriptRoot\..\..\Helpers\AppxSupport\AppxHelper.ps1
 
 function Install-LatestVCLibs {
     
@@ -7,7 +7,6 @@ function Install-LatestVCLibs {
     $url = "https://aka.ms/Microsoft.VCLibs.$($architecture).14.00.Desktop.appx"
     $file = "Microsoft.VCLibs_cg.appx"
     $fullPath = "$HOME\Downloads\$file"
-
 
     $found = Find-LocalAppxPackage -PackageName "VCLibs"
 

@@ -26,10 +26,11 @@ function Install-LatestWinget {
     
     $success = Add-WingetManualAppx
     
-    return $success
     #if (! $success) {
-    #    Add-WingetPSGallery
+      # Add-WingetPSGallery
     #}
+
+    return $success
 }
 
 <#
@@ -92,15 +93,19 @@ function Add-WingetPSGallery {
     param()
     try {
         Write-Info "Trying to install winget via NuGet"
-        Install-Package winget -Force -ErrorAction SilentlyContinue
+        Install-Package winget -Force  
         return $true
     }
     catch {
-        Write-Alert "winget is not installed via NuGet"
-        Write-Error $_.Exception.Message
-        return $false
-    }
-    
+
+        try {
+            Install-Package winget -Force -AllowClobber -ErrorAction SilentlyContinue 
+            return $true
+        }
+        catch {
+            Write-Error $_.Exception.Message
+        }
+    }    
     return $false
 }
 

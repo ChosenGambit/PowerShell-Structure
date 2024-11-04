@@ -6,7 +6,7 @@
 
 enum ModuleType {
     Global
-    Dependencies
+    Helpers
     Prefixed    
 }
 
@@ -80,7 +80,7 @@ function Remove-Modules {
         Write-Neutral "Trying to remove modules"
         
         Invoke-OnModules -Invocation ([ModuleInvocation]::Remove) -ModuleType ([ModuleType]::Prefixed)
-        Invoke-OnModules -Invocation ([ModuleInvocation]::Remove) -ModuleType ([ModuleType]::Dependencies)                 
+        Invoke-OnModules -Invocation ([ModuleInvocation]::Remove) -ModuleType ([ModuleType]::Helpers)                 
         Invoke-OnModules -Invocation ([ModuleInvocation]::Remove) -ModuleType ([ModuleType]::Global)
 
         $script:Initialized = $False
@@ -195,7 +195,7 @@ function Get-GlobalList {
 
 <#
 .SYNOPSIS    
-    Output the modules in the Dependencies directory   
+    Output the modules in the Helpers directory   
     This will import all modules beforehand to be able to read them properly
 .DESCRIPTION        
 .INPUTS
@@ -204,7 +204,7 @@ function Get-GlobalList {
 .LINK
 .NOTES
 #>
-function Get-DependencyList {
+function Get-HelperList {
 
     if ($PSBoundParameters['Verbose']) {
         $VerbosePreference = "Continue"
@@ -212,8 +212,8 @@ function Get-DependencyList {
         $VerbosePreference = "SilentlyContinue"
     }
 
-    Inititialize-Dependencies
-    Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Dependencies)
+    Inititialize-Helpers
+    Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Helpers)
 }
 
 Export-ModuleMember -Function Initialize-Modules
@@ -221,7 +221,7 @@ Export-ModuleMember -Function Remove-Modules
 Export-ModuleMember -Function Restart-Initialization
 Export-ModuleMember -Function Get-CommandPrefix
 Export-ModuleMember -Function Get-ModuleList
-Export-ModuleMember -Function Get-DependencyList
+Export-ModuleMember -Function Get-HelperList
 Export-ModuleMember -Function Get-GlobalList
 
 <# ######################################################
@@ -230,10 +230,10 @@ Export-ModuleMember -Function Get-GlobalList
 ##
 ########################################################>
 
-function Inititialize-Dependencies {
-    # Load dependencies
-    Invoke-OnModules -Invocation ([ModuleInvocation]::Import) -ModuleType ([ModuleType]::Dependencies) -WithCommandPrefix $False -DisableNameChecking $True
-    #Write-Alert "Initializing these dependencies directly is not recommended"
+function Inititialize-Helpers {
+    # Load Helpers
+    Invoke-OnModules -Invocation ([ModuleInvocation]::Import) -ModuleType ([ModuleType]::Helpers) -WithCommandPrefix $False -DisableNameChecking $True
+    #Write-Alert "Initializing these Helpers directly is not recommended"
 }
 
 
@@ -265,8 +265,8 @@ function Invoke-OnModules {
             $SearchPath = "$($CurrentDirectory)`\_Global"
             $OmitGlobalWriting = $True # global write functions not available anymore
         }
-        Dependencies {
-            $SearchPath = "$($CurrentDirectory)`\Dependencies"
+        Helpers {
+            $SearchPath = "$($CurrentDirectory)`\Helpers"
         }
         Prefixed {
             $SearchPath = "$($CurrentDirectory)`\Modules"
