@@ -8,7 +8,7 @@ function Use-CLIWingetInstall {
         [String]$AppName
     )
 
-    $search = winget search $AppName
+    $search = winget search $AppName --accept-source-agreements --disable-interactivity
 
     if ($search -match "No package found") {
         Write-Error "Package not found $AppName"

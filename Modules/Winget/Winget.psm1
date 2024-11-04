@@ -149,7 +149,7 @@ function Install-WithWinget {
         foreach ($AppName in $AppNames) {
 
             # using winget via cli
-            if ($useCLI) {                            
+            if ($useCLI) {                                            
                 Use-CLIWingetInstall -AppName $AppName
             }
 
