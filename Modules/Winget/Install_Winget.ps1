@@ -127,7 +127,7 @@ function Add-WingetManualAppx {
         Add-AppxPackage -Path $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle -ForceUpdateFromAnyVersion -ForceApplicationShutdown
         Start-Sleep -Seconds 2
 
-        winget source update --name msstore --accept-package-agreements
+        winget source update
         Start-Sleep -Seconds 2
         
         winget upgrade --id Microsoft.AppInstaller --accept-package-agreements --accept-source-agreements
