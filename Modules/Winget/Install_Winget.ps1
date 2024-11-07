@@ -1,9 +1,10 @@
-<#
+function Install-LatestWinget {
+
+    <#
     .SYNOPSIS
         Check current winget version, downloads and installs when not found or outdated
     .DESCRIPTION
-#>
-function Install-LatestWinget {
+    #>
 
     [OutputType([bool])]
     param()
@@ -33,12 +34,14 @@ function Install-LatestWinget {
     return $success
 }
 
-<#
+
+function Get-LatestWingetVersion {
+
+    <#
     .SYNOPSIS
         Check latest winget version
     .DESCRIPTION
-#>
-function Get-LatestWingetVersion {
+    #>
 
     [OutputType([version])]
     param()
@@ -83,12 +86,14 @@ function Get-CurrentWingetCLI {
     return $currentVersion
 }
 
-<# 
+function Add-WingetPSGallery {
+
+    <# 
     .SYNOPSIS
        Install winget via NuGet
     .DESCRIPTION
-#>
-function Add-WingetPSGallery {
+    #>
+
     [OutputType([bool])]
     param()
     try {
@@ -109,12 +114,14 @@ function Add-WingetPSGallery {
     return $false
 }
 
-<#
+function Add-WingetManualAppx {
+
+    <#
     .SYNOPSIS
        Download and install winget manually
     .DESCRIPTION
-#>
-function Add-WingetManualAppx {
+    #>
+
     [OutputType([bool])]
     param()
 

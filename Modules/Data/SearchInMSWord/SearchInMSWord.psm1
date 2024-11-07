@@ -1,22 +1,23 @@
-<#
-.SYNOPSIS    
-    Search in Word documents and return path if searchkey has been found
-.DESCRIPTION        
-    Search for a string of text inside Word documents. Will use current 
-    path when no path is provided.
-.INPUTS
-    - [string] SearchKey: The string to search in the documents
-    - [string] Path: The startpath to search
-    - [bool] Recurse: Search in underlying directories
-.OUTPUTS
-    - A list with paths of documents with the searchkey 
-.EXAMPLE
-    Search-InWordDoc -Path "C:\MyDir" -SearchKey "MyString"
-    Search-InWordDoc -SearchKey "MyString" -Recurse $False
-.LINK
-.NOTES
-#>
 function Search-InWordDoc {
+
+    <#
+    .SYNOPSIS    
+        Search in Word documents and return path if searchkey has been found
+    .DESCRIPTION        
+        Search for a string of text inside Word documents. Will use current 
+        path when no path is provided.
+    .INPUTS
+        - [string] SearchKey: The string to search in the documents
+        - [string] Path: The startpath to search
+        - [bool] Recurse: Search in underlying directories
+    .OUTPUTS
+        - A list with paths of documents with the searchkey 
+    .EXAMPLE
+        Search-InWordDoc -Path "C:\MyDir" -SearchKey "MyString"
+        Search-InWordDoc -SearchKey "MyString" -Recurse $False
+    .LINK
+    .NOTES
+    #>
 
     [CmdletBinding()]
     param(
@@ -123,7 +124,6 @@ function Search-InWordDoc {
             Write-Error "Path provided is not valid."
         }
     }
-
 
     END {
 

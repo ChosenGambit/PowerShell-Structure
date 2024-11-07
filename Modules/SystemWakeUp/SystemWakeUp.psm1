@@ -1,20 +1,21 @@
-﻿<#
-.SYNOPSIS    
-    Disables settings that can wake Windows 11 from sleep/hibernation
-.DESCRIPTION        
-    Disables right for the system to wake up on itself
-        - Disables fast startup
-        - Disables wake timer rights in power plans
-        - Disables rights of devices that can wake the system 
-        - Disables maintenance wake up
-        - Disables tasks (scheduler) that can wake the system
-.INPUTS
-.OUTPUTS
-.EXAMPLE
-.LINK
-.NOTES
-#>
-function Disable-SystemWake {
+﻿function Disable-SystemWake {
+
+    <#
+    .SYNOPSIS    
+        Disables settings that can wake Windows 11 from sleep/hibernation
+    .DESCRIPTION        
+        Disables right for the system to wake up on itself
+            - Disables fast startup
+            - Disables wake timer rights in power plans
+            - Disables rights of devices that can wake the system 
+            - Disables maintenance wake up
+            - Disables tasks (scheduler) that can wake the system
+    .INPUTS
+    .OUTPUTS
+    .EXAMPLE
+    .LINK
+    .NOTES
+    #>
 
     [CmdletBinding()]
     param(
