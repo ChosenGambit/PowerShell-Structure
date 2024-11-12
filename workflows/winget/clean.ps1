@@ -39,7 +39,7 @@ function Remove-Directories {
     try {
         Write-Info "Trying to remove directory: $($Path)"
         Get-ChildItem -Path $Path -Directory | Where-Object { $_.Name -like $Name } | ForEach-Object {
-            Remove-Item -Path $_.FullName -Recurse -Force
+            Remove-Item -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
     catch {
