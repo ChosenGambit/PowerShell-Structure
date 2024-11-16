@@ -8,6 +8,8 @@ Initialize-Modules
 $global:WriteOutput = $True
 $global:WriteToLogFile = $True
 $global:LogFilePath = "$PSScriptRoot\..\..\.."
+
+Write-Info "Using PowerShell version $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
 Write-Info "--[Starting Prerequisites @ $(Get-Date)]--" 
 
 # Test connection

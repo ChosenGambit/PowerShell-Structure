@@ -29,6 +29,6 @@ $install_winget_apps_script = Start-Process powershell.exe -ArgumentList "-NoExi
 $install_winget_apps_script | Wait-Process
 
 # Open a new terminal window and execute the clean script, this releases the files the install process used
-$clean_process = Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "& {Start-Sleep -Seconds 1; & '$clean_script'; }" -PassThru
+$clean_process = Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", "& {Start-Sleep -Seconds 1; & '$clean_script'; exit }" -PassThru
 
 
