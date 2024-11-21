@@ -116,28 +116,6 @@ function Convert-DefaultAppAssociationsXML {
     }
 }
 
-
-
-<# Adds timestamp and computername to name #>
-function Get-NiceName {
-    param($Name) 
-    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss" 
-    $csName = $((Get-ComputerInfo).CsName)    
-    return $Name = "$($Name)_$($csName)_$($timestamp)"
-}
-
-function Export-Registry {
-    <#
-        .SYNOPSIS
-        Export Entire registry
-    #>
-    $backupPath = "$HOME\$(Get-NiceName -Name "Registry_Backup").reg" 
-    $process = Start-Process -FilePath "reg.exe" -ArgumentList "export HKLM $($backupPath) /y" -PassThru 
-    Write-Host "Exporting registry to $($backupPath), please wait..." 
-    $process | Wait-Process 
-    Write-Output "Registry export completed."
-}
-
 <# Asks before setting this #>
 function Confirm-SetDefaultApps {    
 
@@ -145,7 +123,6 @@ function Confirm-SetDefaultApps {
 
     if ($userInput.ToLower() -eq "y") {
         Export-DefaultAppAssociationsXML 
-        ##Export-Registry
         Convert-DefaultAppAssociationsXML
         Import-DefaultAppAssociationXML
         Write-Info "Script completed"

@@ -115,7 +115,7 @@ function Restart-Initialization {
 #>
 function Get-CommandPrefix {
     $mod = Get-Module -Name $MyInvocation.MyCommand.Module.Name
-    if ($mod.Prefix -eq $null -or $mod.Prefix -eq '') {        
+    if ($null -eq $mod.Prefix -or $mod.Prefix -eq '') {        
         return $False
     }
     return $mod.Prefix
@@ -212,7 +212,7 @@ function Get-HelperList {
         $VerbosePreference = "SilentlyContinue"
     }
 
-    Inititialize-Helpers
+    Initialize-Helpers
     Invoke-OnModules -Invocation ([ModuleInvocation]::List) -ModuleType ([ModuleType]::Helpers)
 }
 
@@ -230,7 +230,7 @@ Export-ModuleMember -Function Get-GlobalList
 ##
 ########################################################>
 
-function Inititialize-Helpers {
+function Initialize-Helpers {
     # Load Helpers
     Invoke-OnModules -Invocation ([ModuleInvocation]::Import) -ModuleType ([ModuleType]::Helpers) -WithCommandPrefix $False -DisableNameChecking $True
     #Write-Alert "Initializing these Helpers directly is not recommended"

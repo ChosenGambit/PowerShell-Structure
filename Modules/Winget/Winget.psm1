@@ -124,7 +124,7 @@ function Install-WithWinget {
         Write-Info "List provided for installation:"
 
         # show what to install
-        if ($AppNames -ne $null) {            
+        if ($null -ne $AppNames) {            
             $AppNames.Split(" ") | ForEach-Object {
                 Write-Info " - $_ " 
             }
