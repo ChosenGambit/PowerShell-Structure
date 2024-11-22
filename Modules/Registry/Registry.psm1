@@ -2,6 +2,8 @@
 
 .$PSScriptRoot\Registry_ExportDefaultApps.ps1
 
+.$PSScriptRoot\Registry_Permission.ps1
+
 function Export-RegistryHKCU {
     <#
         .SYNOPSIS
@@ -67,79 +69,66 @@ function Set-DefaultApps {
         $FilePath
     ) 
 
-    $content = (Get-Content -Path $FilePath)
+    try {
+        $content = (Get-Content -Path $FilePath -ErrorAction Stop) 
+    }
+    catch {
+        Write-Error $_.Exception.Message
+    }    
 
     foreach ($line in $content) {
         $split = $line.Split(";")
-        $Extension = $split[0]
-        $RegType = $split[1]
-        $ProgId = $split[2]
+        $Extension = [string] $split[0]
+        $RegType = [string] $split[1]
+        $ProgId = [string] $split[2]
 
+        # Change default program for file extension
         if ($RegType -eq "fileext") {
-            $KeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
-
-            if (-not (Test-Path $KeyPath)) {
-                New-Item -Path $KeyPath -Force
-                Write-Info "Created new registry key: $KeyPath"
-            }
-
-            $cuKey = "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
-
-            try {
-                $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($cuKey, [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree, [System.Security.AccessControl.RegistryRights]::FullControl)
-
-                if ($null -eq $key) {
-                    Write-Error "key is null: $KeyPath"      
-                    
-                    try {
-                        # try something else
-                        $key = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey($cuKey, [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree, [System.Security.AccessControl.RegistryRights]::ChangePermissions)                    
-                        $acl = $key.GetAccessControl()
-                        $rule = New-Object System.Security.AccessControl.RegistryAccessRule([System.Security.Principal.WindowsIdentity]::GetCurrent().Name, "FullControl", "Allow")
-                        $acl.SetAccessRule($rule)
-                        $key.SetAccessControl($acl)
-                        $key.Close()
-                    }
-                    catch {
-                        Write-Error "Could not change registry permissions"
-                    }
-                }
-                else {
-                    $key.SetValue("ProgId", $ProgId, [Microsoft.Win32.RegistryValueKind]::String) 
-                    $key.Close() 
-                    Write-Info "Set default app to $ProgId for $Extension"
-                }
-            }
-            catch {
-                Write-Error $_
-            }
-
-            #Start-Process powershell -ArgumentList "-NoExit", "-Command", "reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.pdf\UserChoice /v ProgId /t REG_SZ /d $ProgId /f" -Verb RunAs
-            #Write-Info "Set default app to $ProgId for $Extension"
-            try {
-                Set-ItemProperty -Path $KeyPath -Name ProgId -Value $ProgId -Force -ErrorAction Stop        
-            }
-            catch {
-                Write-Error "Could not change registry key $ProgId"
-            }
-            
+            $FullKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
+            $subKey = "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"                    
         }
+        # Change default program for protocol
         elseif ($RegType -eq "protocol") {
-            $KeyPath = "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
-            if (-not (Test-Path $KeyPath)) {
-                New-Item -Path $KeyPath -Force
-                Write-Info "Created new registry key: $KeyPath"
-            }
-            Set-ItemProperty -Path $KeyPath -Name ProgId -Value $ProgId -Force
-            Write-Info "Set default app to $ProgId for $Extension"
-
+            $FullKeyPath = "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
+            $subKey = "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
         }
         else {
             Write-Info "RegType must either be fileext or protocol, did nothing with $Extension"
         }
+
+        if ($null -ne $subKey -and $null -ne $FullKeyPath) {
+
+            # create register key because it didn't exist at all
+            if (-not (Test-Path $FullKeyPath)) {
+                New-Item -Path $FullKeyPath -Force
+                Write-Info "Created new registry key: $FullKeyPath"
+            }      
+
+            # set ownership to user group and change default app
+            try {                                            
+                Set-RegistryPermission -rootKey 'CurrentUser' -key $subKey 
+                Set-ItemProperty -Path $FullKeyPath -Name ProgId -Value "$ProgId" -Force -ErrorAction Stop   
+                Write-Info "Registry key $FullKeyPath ProgId set to $ProgId"  
+            }
+            catch {
+                Write-Alert "Could not change registry key $Extension ; $RegType ; $ProgId"
+                Write-Error $_
+            }  
+
+            # set ownership to system (local system)
+            try {                
+                Revoke-RegistryPermission -rootKey 'CurrentUser' -key $subKey 
+            }
+             catch {
+                Write-Alert "Could not revoke registry permissions $Extension ; $RegType ; $ProgId"
+                Write-Error $_
+            }  
+        }
+        else {
+            Write-Alert "KeyPath or subKey were not set, nothing happend"
+        }
     }
 }
-
 
 Export-ModuleMember -Function Export-AllDefaultApps 
 Export-ModuleMember -Function Export-RegistryHKCU 

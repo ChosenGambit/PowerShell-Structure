@@ -14,7 +14,7 @@ function Confirm-SetDefaultApps {
         Export-RegistryHKCU -Path "$($PSScriptRoot)\..\..\..\.."
         Set-DefaultApps -FilePath "$($PSScriptRoot)\..\..\..\..\def_app_reg.txt" 
 
-        Write-Info "Restarting explorer.exe"
+        # Write-Info "Restarting explorer.exe"
         # Stop-Process -Name explorer -Force 
         # Start-Process explorer
         [System.GC]::Collect()
@@ -25,3 +25,5 @@ function Confirm-SetDefaultApps {
 }
 
 Confirm-SetDefaultApps
+
+#.gif;fileext;AppX43hnxtbyyps62jhe9sqpdzxn1790zetc
