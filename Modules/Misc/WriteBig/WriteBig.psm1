@@ -15,44 +15,50 @@ function Write-BigChar {
 
     switch ($Type) {
         "fill_hc" {
-            if ($Number -eq "one") { $char = [char]0x2588 } else { $char = [char]0x2591 }
+            if ($Number -eq 1) { $char = [char]0x2588 } else { $char = [char]0x2591 }
         }
         "fill_lc" {
-            if ($Number -eq "one") { $char = [char]0x2593 } else { $char = [char]0x2592 }
+            if ($Number -eq 1) { $char = [char]0x2593 } else { $char = [char]0x2592 }
         }
         "love" {
-            if ($Number -eq "one") { $char = [char]0x2665 } else { $char = [char]0x25CB }
+            if ($Number -eq 1) { $char = [char]0x2665 } else { $char = [char]0x25CB }
         }
         "square" {
-            if ($Number -eq "one") { $char = [char]0x2B1B } else { $char = [char]0x2B1C }
+            if ($Number -eq 1) { $char = [char]0x2B1B } else { $char = [char]0x2B1C }
         }
         "circle" {
-            if ($Number -eq "one") { $char = [char]0x26AB } else { $char = [char]0x26AA }
+            if ($Number -eq 1) { $char = [char]0x26AB } else { $char = [char]0x26AA }
         }
         "happy" {
-            if ($Number -eq "one") { $char = [char]0x1F60A } else { $char = [char]0x2764 }
+            if ($Number -eq 1) { $char = [char]0x1F60A } else { $char = [char]0x2764 }
         }
         "music" {
-            if ($Number -eq "one") { $char = [char]0x1F3B5 } else { $char = [char]0x1F3B6 }
+            if ($Number -eq 1) { $char = [char]0x1F3B5 } else { $char = [char]0x1F3B6 }
         }
         "hot" {
-            if ($Number -eq "one") { $char = [char]0x1F525 } else { $char = [char]0x1F4A5 }
+            if ($Number -eq 1) { $char = [char]0x1F525 } else { $char = [char]0x1F4A5 }
         }
         "surprise" {
-            if ($Number -eq "one") { $char = [char]0x1F381 } else { $char = [char]0x1F389 }
+            if ($Number -eq 1) { $char = [char]0x1F381 } else { $char = [char]0x1F389 }
         }
         "cold" {
-            if ($Number -eq "one") { $char = [char]0x2744 } else { $char = [char]0x1F327 }
+            if ($Number -eq 1) { $char = [char]0x2744 } else { $char = [char]0x1F327 }
         }
         "money" {
-            if ($Number -eq "one") { $char = [char]0x1F4B8 } else { $char = [char]0x1F4B0 }
+            if ($Number -eq 1) { $char = [char]0x1F4B8 } else { $char = [char]0x1F4B0 }
         }
         "sunny" {
-            if ($Number -eq "one") { $char = [char]0x1F31E } else { $char = [char]0x1F334 }
+            if ($Number -eq 1) { $char = [char]0x1F31E } else { $char = [char]0x1F334 }
         }
     }
 
-    Write-Host $char -NoNewline -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor
+	try {
+		Write-Host $char -NoNewline -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor
+	}
+	catch {
+		Write-Host $char -NoNewline
+	}
+    
 }
 
 # Iterate through the grid and draw the squares
@@ -110,11 +116,14 @@ function Write-BigWord {
             $drawLetter = $letterDict.$letter[$i]
             
             foreach ($Number in $drawLetter) {
-                if ($Number -eq 1) {
-                    Write-BigChar -Number "one" -Type $Type -ForegroundColor $ForegroundColorOne -BackgroundColor $BackgroundColorOne
-                } else {
-                    Write-BigChar -Number "zero" -Type $Type -ForegroundColor $ForegroundColorZero -BackgroundColor $BackgroundColorZero
-                }
+				if ($Number -eq 1) {
+					#Write-Host "$Number $ForegroundColorOne $BackgroundColorOne"
+					Write-BigChar -Number $Number -Type $Type -ForegroundColor $ForegroundColorOne -BackgroundColor $BackgroundColorOne
+				}
+				else {
+					#Write-Host "$Number $ForegroundColorZero $BackgroundColorZero"
+					Write-BigChar -Number $Number -Type $Type -ForegroundColor $ForegroundColorZero -BackgroundColor $BackgroundColorZero
+				}                
             }
         }
         Write-Host "" # new line
@@ -308,5 +317,5 @@ z = @(
 )
 }
 
-#Export-ModuleMember -Function Write-BigChar
-#Export-ModuleMember -Function Write-BigWord
+Export-ModuleMember -Function Write-BigChar
+Export-ModuleMember -Function Write-BigWord

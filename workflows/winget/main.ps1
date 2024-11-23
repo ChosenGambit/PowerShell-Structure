@@ -1,3 +1,8 @@
+[Console]::OutputEncoding = [System.Text.Encoding]::Unicode
+Import-Module $PSScriptRoot\..\..\Modules\Misc\WriteBig\WriteBig.psm1 
+Write-BigWord -Word "Chosen" -Type "fill_lc" -ForegroundColorOne "Green" -BackgroundColorOne "DarkGray"
+Write-BigWord -Word "Gambit" -ForegroundColorOne "DarkGreen" -ForegroundColorZero "Black" -BackgroundColorZero "Black"
+
 # Path to the install script
 $prerequisites_script = "$PSScriptRoot\prerequisites.ps1"
 

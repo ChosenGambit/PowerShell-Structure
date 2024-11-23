@@ -24,6 +24,7 @@ function Confirm-SetDefaultApps {
     }
 }
 
+
 Confirm-SetDefaultApps
 
 #.gif;fileext;AppX43hnxtbyyps62jhe9sqpdzxn1790zetc
