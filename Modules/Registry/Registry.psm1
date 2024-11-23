@@ -117,7 +117,8 @@ function Set-DefaultApps {
 
             # set ownership to system (local system)
             try {                
-                Revoke-RegistryPermission -rootKey 'CurrentUser' -key $subKey 
+                # turned off, does not seem to work:
+                #Revoke-RegistryPermission -rootKey 'CurrentUser' -key $subKey 
             }
              catch {
                 Write-Alert "Could not revoke registry permissions $Extension ; $RegType ; $ProgId"

@@ -78,11 +78,8 @@ function Get-LatestMSUIXaml {
         Checks for the latest microsoft.ui.xaml version online 
         Returns the version when found or null
     #>
-
-    [OutputType([version])]
-    param()
-
-    [version]$version = $null
+    
+    $version = $null
 
     # check latest version online
     try {        
@@ -92,10 +89,10 @@ function Get-LatestMSUIXaml {
 
         $url = "https://api.nuget.org/v3-flatcontainer/$packageName/index.json"
         $response = Invoke-RestMethod -Uri $url
-
+        
         for ($i = $response.versions.Count-1; $i -gt 0; $i--) {
-            $version = $response.versions[$i]
-            if ($version -inotlike "*prerelease*") {
+            $version = [string]$response.versions[$i]
+            if ($version -notmatch "prerelease") {
                 break
             }
         }
