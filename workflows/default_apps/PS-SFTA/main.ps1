@@ -66,12 +66,12 @@ function Confirm-SetDefaultApps {
 
             # Change default program for file extension
             if ($RegType -eq "fileext") {
-                Write-Info "Extension: Trying to set $ProgIg to $Extension"
+                Write-Info "Extension: Trying to set $ProgId to $Extension"
                 Set-FTA -ProgId $ProgId -Extension $Extension 
             }
             # Change default program for protocol
             elseif ($RegType -eq "protocol") {
-                Write-Info "Protocol: Trying to set $ProgIg to $Extension"
+                Write-Info "Protocol: Trying to set $ProgId to $Extension"
                 Set-PTA -ProgId $ProgId -Extension $Extension 
             }
             else {
