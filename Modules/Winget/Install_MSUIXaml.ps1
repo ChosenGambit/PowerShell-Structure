@@ -12,6 +12,14 @@ function Install-LatestMSUIXaml {
         Prerequisite for Winget
     #>
 
+    param(
+        $FilePath
+    )
+
+    if (! $PSBoundParameters.ContainsKey('FilePath')) {
+        $FilePath = "$HOME\Downloads"
+    }
+
     # get latest version available online
     $latestVersion = Get-LatestMSUIXaml
 
@@ -20,7 +28,7 @@ function Install-LatestMSUIXaml {
 
     if (! $found) {
         # install Microsoft.UI.Xaml with NuGet
-        $success =  Add-MSUIXamlManualAppx -LatestVersion $latestVersion
+        $success =  Add-MSUIXamlManualAppx -LatestVersion $latestVersion -FilePath $FilePath
         if (! $success) {
             Write-Info "Failed to install Microsoft.UI.Xaml (msstore), now trying to install Microsoft.UI.XAML via NuGet"
             $success = Add-MSUIXamlWithNuGet
@@ -142,42 +150,58 @@ function Add-MSUIXamlManualAppx {
 
     [OutputType([bool])]
     param(
-        $LatestVersion
+        $LatestVersion,
+        $FilePath
     )
 
     # download and install microsoft.ui.xaml
     try {
-        Write-Info "Downloading Microsoft.UI.Xaml $LatestVersion"
-        $url = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/$LatestVersion"
-        $zip = "$HOME\Downloads\Microsoft.UI.Xaml.zip"
-        Invoke-WebRequest -Uri $url -OutFile $zip
+        $fileName = "Microsoft.UI.Xaml_$LatestVersion.zip"
+        $zipFile = "$FilePath\$fileName"
+        $extractPath = "$FilePath\Microsoft.UI.Xaml_cg_$LatestVersion"
+
+        # sub routine to extract
+        function Expand-DownloadedMSUIXaml {
+            param($SourcePath,$DestinationPath)
+            # extract
+            Write-Info "Trying to extract $SourcePath to $DestinationPath"            
+            Expand-Archive -Path $SourcePath -DestinationPath $DestinationPath -Force -ErrorAction Continue
+        }
+        
+        # file found locally
+        if (Test-Path -Path $zipFile) {
+            Write-Info "Found $fileName $LatestVersion locally"       
+        }
+        # not found locally, thus download
+        else {
+            Write-Info "Downloading Microsoft.UI.Xaml $LatestVersion"
+            $url = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/$LatestVersion"
+            Invoke-WebRequest -Uri $url -OutFile $zipFile
+            Start-Sleep -Seconds 2
+        }
+
+        if (! (Test-Path -Path $extractPath)) {
+            Expand-DownloadedMSUIXaml -SourcePath $zipFile -DestinationPath $extractPath
+        }     
         Start-Sleep -Seconds 2
 
-        # extract
-        Write-Info "Trying to extract Microsoft.UI.Xaml"
-        $extractPath = "$HOME\Downloads\Microsoft.UI.Xaml_cg_$LatestVersion"
-        Expand-Archive -Path $zip -DestinationPath $extractPath -Force -ErrorAction Continue
-        Start-Sleep -Seconds 2
+        # find .appx file and try to install
+        $appXPath = "$extractPath\tools\AppX\x64\Release"
+        $uiXAMLFile = Get-ChildItem -Path $appXPath -Filter "*.appx" | Select-Object -First 1
+        #$uiXAMLFullPath = Join-Path -Path $appXPath -ChildPath $uiXAMLFile
 
-        $filePath = "$extractPath\tools\AppX\x64\Release"
-        $uiXAMLFile = Get-ChildItem -Path $filePath -Filter "*.appx" | Select-Object -First 1
-        $uiXAMLFullPath = Join-Path -Path $filePath -ChildPath $uiXAMLFile
-
-        Write-Info "Trying to install $uiXAMLFullPath"
-        Add-AppxPackage -Path $uiXAMLFullPath -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Verbose
+        Write-Info "Trying to install $uiXAMLFile"
+        Add-AppxPackage -Path $uiXAMLFile -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Verbose
 
         Start-Process -FilePath "wsreset.exe" -NoNewWindow -ErrorAction SilentlyContinue
         return $true   
     }
     catch {
         Write-Error $_.Exception
-        Write-Warning "Failed to install $packageName"
+        Write-Warning "Failed to install $packageName, are you administrator?"
         return $false
     }
 }
-
-
-
 
 
 

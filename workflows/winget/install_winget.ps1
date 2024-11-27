@@ -9,7 +9,8 @@ $global:WriteOutput = $True
 $global:WriteToLogFile = $True
 $global:LogFilePath = "$PSScriptRoot\..\..\.."
 Write-Info "--[Starting Install Script @ $(Get-Date)]--" 
-Initialize-Winget -InstallPrerequisites $false -InstallWinget $true
+$ProxyPath = "$PSScriptRoot\..\..\..\Dependencies"
+Initialize-Winget -InstallPrerequisites $false -InstallWinget $true -ProxyPath $ProxyPath
 [System.GC]::Collect()
 
 

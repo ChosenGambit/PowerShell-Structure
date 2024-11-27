@@ -33,7 +33,8 @@ function Initialize-Winget {
         [Parameter(Mandatory=$false)] [bool]$InstallPrerequisites=$true,
         [Parameter(Mandatory=$false)] [bool]$InstallWinget=$true,
         [Parameter(Mandatory=$false)] [bool]$InstallWingetClient=$false,
-        [Parameter(Mandatory=$false)] [bool]$UpdatePowerShell=$false     
+        [Parameter(Mandatory=$false)] [bool]$UpdatePowerShell=$false,
+        [Parameter(Mandatory=$false)] [string]$ProxyPath = "$HOME\Downloads" # check for local versions that are already downloaded
         #[Parameter(Mandatory=$false)] [bool]$DefaultPS7=$false
     )
 
@@ -41,16 +42,16 @@ function Initialize-Winget {
 
         if ($InstallPrerequisites -eq $true) {
             # prerequisite Microsoft.VCLibs
-            Install-LatestVCLibs
+            Install-LatestVCLibs -FilePath $ProxyPath
 
             # prerequisite lib Microsoft.UI.Xaml, prefers NuGet version over Appx            
-            Install-LatestMSUIXaml 
+            Install-LatestMSUIXaml -FilePath $ProxyPath
         }
 
         if ($InstallWinget -eq $true) {         
 
             # prefers appx version over nuget
-            $installed = Install-LatestWinget
+            $installed = Install-LatestWinget -FilePath $ProxyPath
         }
 
         # works together with PSGallery version of winget

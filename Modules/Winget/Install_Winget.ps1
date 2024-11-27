@@ -7,10 +7,16 @@ function Install-LatestWinget {
     #>
 
     [OutputType([bool])]
-    param()
+    param(
+        $FilePath
+    )
+
+    if (! $PSBoundParameters.ContainsKey('FilePath')) {
+        $FilePath = "$HOME\Downloads"
+    }
 
     $latestVersion = Get-LatestWingetVersion
-    $currentVersion = Get-CurrentWingetCLI
+    $currentVersion = Get-LocalWingetVersionCLI
 
     if ($null -ne $latestVersion -and $null -ne $currentVersion) {
 
@@ -25,7 +31,7 @@ function Install-LatestWinget {
   
     Write-Info "Trying to install winget"
     
-    $success = Add-WingetManualAppx
+    $success = Add-WingetManualAppx -FilePath $FilePath -LatestVersion $latestVersion
     
     #if (! $success) {
       # Add-WingetPSGallery
@@ -69,7 +75,7 @@ function Get-LatestWingetVersion {
 <#
     Checks current winget version
 #>
-function Get-CurrentWingetCLI {
+function Get-LocalWingetVersionCLI {
     [OutputType([version])]
     param()
 
@@ -123,15 +129,27 @@ function Add-WingetManualAppx {
     #>
 
     [OutputType([bool])]
-    param()
+    param(
+        [Parameter(Mandatory=$true)] $FilePath,
+        [Parameter(Mandatory=$true)] $LatestVersion
+    )
 
     try {
-        Write-Info "Trying to install winget via Microsoft website"
-        Write-Info "Downloading winget from Microsoft website"
-        Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile $HOME\Downloads\Microsoft.DesktopAppInstaller_wingetcg.msixbundle
-        Start-Sleep -Seconds 2
 
-        Add-AppxPackage -Path $HOME/Downloads/Microsoft.DesktopAppInstaller_wingetcg.msixbundle -ForceUpdateFromAnyVersion -ForceApplicationShutdown
+        $outFile = "$FilePath\Microsoft.DesktopAppInstaller_wingetcg_$LatestVersion.msixbundle"
+
+        # download latest winget version from internet
+        if (! (Test-Path -Path $outFile)) {
+            Write-Info "Downloading winget from Microsoft website"
+            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile $outFile                    
+        }
+        # found latest winget version local
+        else {
+            Write-Info "Found latest winget version locally ($outFile), now trying to install..."
+        }
+
+        Start-Sleep -Seconds 2
+        Add-AppxPackage -Path $outFile -ForceUpdateFromAnyVersion -ForceApplicationShutdown
         Start-Sleep -Seconds 2
 
         winget source update

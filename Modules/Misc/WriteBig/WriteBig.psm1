@@ -13,44 +13,54 @@ function Write-BigChar {
 		[string]$BackgroundColor = $Host.UI.RawUI.BackgroundColor  
     ) 
 
-    switch ($Type) {
-        "fill_hc" {
-            if ($Number -eq 1) { $char = [char]0x2588 } else { $char = [char]0x2591 }
-        }
-        "fill_lc" {
-            if ($Number -eq 1) { $char = [char]0x2593 } else { $char = [char]0x2592 }
-        }
-        "love" {
-            if ($Number -eq 1) { $char = [char]0x2665 } else { $char = [char]0x25CB }
-        }
-        "square" {
-            if ($Number -eq 1) { $char = [char]0x2B1B } else { $char = [char]0x2B1C }
-        }
-        "circle" {
-            if ($Number -eq 1) { $char = [char]0x26AB } else { $char = [char]0x26AA }
-        }
-        "happy" {
-            if ($Number -eq 1) { $char = [char]0x1F60A } else { $char = [char]0x2764 }
-        }
-        "music" {
-            if ($Number -eq 1) { $char = [char]0x1F3B5 } else { $char = [char]0x1F3B6 }
-        }
-        "hot" {
-            if ($Number -eq 1) { $char = [char]0x1F525 } else { $char = [char]0x1F4A5 }
-        }
-        "surprise" {
-            if ($Number -eq 1) { $char = [char]0x1F381 } else { $char = [char]0x1F389 }
-        }
-        "cold" {
-            if ($Number -eq 1) { $char = [char]0x2744 } else { $char = [char]0x1F327 }
-        }
-        "money" {
-            if ($Number -eq 1) { $char = [char]0x1F4B8 } else { $char = [char]0x1F4B0 }
-        }
-        "sunny" {
-            if ($Number -eq 1) { $char = [char]0x1F31E } else { $char = [char]0x1F334 }
-        }
-    }
+	try {
+
+		switch ($Type) {
+			"fill_hc" {
+				if ($Number -eq 1) { $char = [char]0x2588 } else { $char = [char]0x2591 }
+			}
+			"fill_lc" {
+				if ($Number -eq 1) { $char = [char]0x2593 } else { $char = [char]0x2592 }
+			}
+			"love" {
+				if ($Number -eq 1) { $char = [char]0x2665 } else { $char = [char]0x25CB }
+			}
+			"square" {
+				if ($Number -eq 1) { $char = [char]0x2B1B } else { $char = [char]0x2B1C }
+			}
+			"circle" {
+				if ($Number -eq 1) { $char = [char]0x26AB } else { $char = [char]0x26AA }
+			}
+			"happy" {
+				if ($Number -eq 1) { $char = [char]0x1F60A } else { $char = [char]0x2764 }
+			}
+			"music" {
+				if ($Number -eq 1) { $char = [char]0x1F3B5 } else { $char = [char]0x1F3B6 }
+			}
+			"hot" {
+				if ($Number -eq 1) { $char = [char]0x1F525 } else { $char = [char]0x1F4A5 }
+			}
+			"surprise" {
+				if ($Number -eq 1) { $char = [char]0x1F381 } else { $char = [char]0x1F389 }
+			}
+			"cold" {
+				if ($Number -eq 1) { $char = [char]0x2744 } else { $char = [char]0x1F327 }
+			}
+			"money" {
+				if ($Number -eq 1) { $char = [char]0x1F4B8 } else { $char = [char]0x1F4B0 }
+			}
+			"sunny" {
+				if ($Number -eq 1) { $char = [char]0x1F31E } else { $char = [char]0x1F334 }
+			}
+			default {
+				if ($Number -eq 1) { $char = [char]0x2588 } else { $char = [char]0x2591 }		
+			}
+		}
+	}
+	catch {
+		# fallback
+		if ($Number -eq 1) { $char = [char]0x2588 } else { $char = [char]0x2591 }
+	}
 
 	try {
 		Write-Host $char -NoNewline -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor
@@ -72,6 +82,7 @@ function Write-BigWord {
 
     [CmdletBinding()]
     param(        
+		[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
         [string]$Word,
         [string]$Type = "fill_hc",
 		$RandomColors = $False, # overwrites other color values
@@ -100,7 +111,10 @@ function Write-BigWord {
 			$BackgroundColorOne  = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
 			$BackgroundColorZero = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
 		}
-		while ($BackgroundColorOne -eq $ForegroundColorOne -or $BackgroundColorZero -eq $ForegroundColorZero)	
+		while ($BackgroundColorOne -eq $ForegroundColorOne -or 
+			   $BackgroundColorOne -eq $ForegroundColorZero -or 
+			   $BackgroundColorZero -eq $ForegroundColorOne -or 
+			   $BackgroundColorZero -eq $ForegroundColorZero)	
 	}
 
     $letters = $Word.ToCharArray()
@@ -132,6 +146,13 @@ function Write-BigWord {
 
 # Letter dictionary
 $letterDict = @{
+" " = @(
+    @(0),
+    @(0),
+    @(0),
+    @(0),
+    @(0)
+)
 a = @(
     @(0, 0, 1, 1, 0, 0),
     @(0, 1, 0, 0, 1, 0),
@@ -303,7 +324,7 @@ x = @(
 )
 y = @(
 	@(0, 1, 0, 0, 0, 1, 0),
-	@(0, 0, 1, 1, 1, 0, 0),
+	@(0, 0, 1, 0, 1, 0, 0),
 	@(0, 0, 0, 1, 0, 0, 0),
 	@(0, 0, 0, 1, 0, 0, 0),
 	@(0, 0, 0, 1, 0, 0, 0)
@@ -315,6 +336,14 @@ z = @(
 	@(0, 0, 1, 0, 0, 0, 0),
 	@(0, 1, 1, 1, 1, 1, 0)
 )
+'!' = @(
+	@(0, 1, 1, 0),
+	@(0, 1, 1, 0),
+	@(0, 1, 1, 0),
+	@(0, 0, 0, 0),
+	@(0, 1, 1, 0)
+)
+
 }
 
 Export-ModuleMember -Function Write-BigChar

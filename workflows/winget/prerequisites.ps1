@@ -16,7 +16,12 @@ if ($tnc.PingSucceeded -eq $False) {
 }
 
 # Initialize Winget Prerequisites
-Initialize-Winget -InstallPrerequisites $true -InstallWinget $false
+$ProxyPath = "$PSScriptRoot\..\..\..\Dependencies"
+if (! (Test-Path -Path $ProxyPath)) {
+    New-Item -ItemType Directory -Force -Path $ProxyPath -Verbose
+}
+
+Initialize-Winget -InstallPrerequisites $true -InstallWinget $false -ProxyPath $ProxyPath
 [System.GC]::Collect()
 
 
