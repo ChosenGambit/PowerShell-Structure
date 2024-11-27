@@ -105,5 +105,5 @@ function Confirm-SetDefaultApps {
 
 Confirm-SetDefaultApps
 
-@("Goodbye !", "Bye Bye !", "Thank you !") | Get-Random | Write-BigWord -RandomColors $true
+@("Goodbye !", "Bye Bye !", "Thank you !") | Get-Random | Write-BigWord -RandomColors "letter"
 
