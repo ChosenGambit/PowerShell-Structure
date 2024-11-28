@@ -64,15 +64,19 @@ function Confirm-SetDefaultApps {
             $RegType = [string] $split[1]
             $ProgId = [string] $split[2]
 
-            # Change default program for file extension
-            
-            $ExtensionKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
-
+            # Change default program for file extension                        
             if ($RegType -eq "fileext") {
                 Write-Info "Extension: Trying to set $ProgId to $Extension"
                 try {
-                    # HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice
+                    $FullKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
                     $ExtensionKeyPath = "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
+
+                    # create register key is it does not exist
+                    if (-not (Test-Path $FullKeyPath)) {
+                        New-Item -Path $FullKeyPath -Force
+                        Write-Info "Created new registry key: $FullKeyPath"
+                    }   
+
                     Set-RegistryPermission -rootKey 'CurrentUser' -key $ExtensionKeyPath 
                     Set-FTA -ProgId $ProgId -Extension $Extension -Verbose
                 }
@@ -84,10 +88,18 @@ function Confirm-SetDefaultApps {
             elseif ($RegType -eq "protocol") {
                 Write-Info "Protocol: Trying to set $ProgId to $Extension"
                 try {
-                    # HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
+                    
+                    $FullKeyPath = "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
                     $ExtensionKeyPath = "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
+
+                    # create register key is it does not exist
+                    if (-not (Test-Path $FullKeyPath)) {
+                        New-Item -Path $FullKeyPath -Force
+                        Write-Info "Created new registry key: $FullKeyPath"
+                    }   
+                    
                     Set-RegistryPermission -rootKey 'CurrentUser' -key $ExtensionKeyPath 
-                    Set-PTA -ProgId $ProgId -Extension $Extension -Verbose
+                    Set-PTA -ProgId $ProgId -Protocol $Extension -Verbose
                 }
                 catch {
                     Write-Error $_
@@ -112,7 +124,7 @@ function Confirm-SetDefaultApps {
             }
             # Change default program for protocol
             elseif ($RegType -eq "protocol") {
-                Write-Status " --> $Extension = $(Get-PTA -Extension $Extension)"
+                Write-Status " --> $Extension = $(Get-PTA -Protocol $Extension)"
             }
         }
 
