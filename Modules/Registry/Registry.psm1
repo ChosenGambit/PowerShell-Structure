@@ -114,6 +114,63 @@ function Export-RegistryHKCU {
     Write-Output "Registry export completed."
 }
 
+function Set-RegistryPermission {
+    param (
+        [string]$rootKey,
+        [string]$key,
+        [System.Security.Principal.SecurityIdentifier]$sid = 'S-1-5-32-545', # SID for Users group
+        [bool]$recurse = $true
+    )
+
+    # Escalate privileges
+    $import = '[DllImport("ntdll.dll")] public static extern int RtlAdjustPrivilege(ulong a, bool b, bool c, ref bool d);'
+    $ntdll = Add-Type -MemberDefinition $import -Name NtDll -PassThru
+    $privileges = @{ SeTakeOwnership = 9; SeBackup = 17; SeRestore = 18 }
+    foreach ($i in $privileges.Values) {
+        $null = $ntdll::RtlAdjustPrivilege($i, 1, 0, [ref]0)
+    }
+
+    # Function to get key permissions
+    function Get-KeyPermissions {
+        param (
+            [string]$rootKey,
+            [string]$key,
+            [System.Security.Principal.SecurityIdentifier]$sid,
+            [bool]$recurse,
+            [int]$recurseLevel = 0
+        )
+
+        # Enable inheritance of permissions
+        $acl = New-Object System.Security.AccessControl.RegistrySecurity
+        $acl.SetAccessRuleProtection($false, $false)
+        $regKey = [Microsoft.Win32.Registry]::$rootKey.OpenSubKey($key, 'ReadWriteSubTree', 'TakeOwnership')        
+        $regKey.SetAccessControl($acl)
+
+        # Take ownership of the key            
+        $acl.SetOwner($sid)
+        $regKey.SetAccessControl($acl)
+        Write-Info "New owner ($sid) for key ($key)"
+
+        # Change permissions for the current key and propagate to subkeys
+        if ($recurseLevel -eq 0) {
+            $regKey = $regKey.OpenSubKey('', 'ReadWriteSubTree', 'ChangePermissions')
+            $rule = New-Object System.Security.AccessControl.RegistryAccessRule($sid, 'FullControl', 'ContainerInherit', 'None', 'Allow')
+            $acl.ResetAccessRule($rule)
+            $regKey.SetAccessControl($acl)
+        }
+
+        # Recursively repeat for subkeys
+        if ($recurse) {
+            foreach ($subKey in $regKey.OpenSubKey('').GetSubKeyNames()) {
+                Get-KeyPermissions $rootKey ($key + '\' + $subKey) $sid $recurse ($recurseLevel + 1)
+            }
+        }
+    }
+
+    Get-KeyPermissions $rootKey $key $sid $recurse
+}
+
 Export-ModuleMember -Function Export-DefaultAppsTxt
 Export-ModuleMember -Function Export-AllDefaultAppsTxt
 Export-ModuleMember -Function Export-RegistryHKCU
+Export-ModuleMember -Function Set-RegistryPermission

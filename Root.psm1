@@ -331,7 +331,7 @@ function Invoke-OnModules {
     }
 
     if ($OmitGlobalWriting -ne $True) {
-        Write-Status "Loaded Successfully: #$($SuccesCounter), Errors: #$($ErrorCounter)"
+        Write-Status "Modules loaded successfully: #$($SuccesCounter), Errors: #$($ErrorCounter)"
     }
 }
 

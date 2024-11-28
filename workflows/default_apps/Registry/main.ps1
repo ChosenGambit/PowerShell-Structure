@@ -21,7 +21,7 @@ function Confirm-SetDefaultApps {
     if ($userInput.ToLower() -eq "y") {        
 
         $FileName = "PS-SFTA.zip"
-        $PS_SFTA_github = "https://github.com/DanysysTeam/PS-SFTA/archive/refs/heads/master.zip"       
+        $PS_SFTA_github = "https://github.com/ChosenGambit/PS-SFTA/archive/refs/heads/master.zip"       
         $DependenciesPath = "$PSScriptRoot\..\..\..\..\Dependencies"
         $FullZipPath = "$DependenciesPath\$FileName"
         $unzippedPath = "PS-SFTA-master"
@@ -65,14 +65,34 @@ function Confirm-SetDefaultApps {
             $ProgId = [string] $split[2]
 
             # Change default program for file extension
+            
+            $ExtensionKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
+
             if ($RegType -eq "fileext") {
                 Write-Info "Extension: Trying to set $ProgId to $Extension"
-                Set-FTA -ProgId $ProgId -Extension $Extension 
+                try {
+                    # HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice
+                    $ExtensionKeyPath = "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
+                    Set-RegistryPermission -rootKey 'CurrentUser' -key $ExtensionKeyPath 
+                    Set-FTA -ProgId $ProgId -Extension $Extension -Verbose
+                }
+                catch {
+                    Write-Error $_
+                }                
             }
             # Change default program for protocol
             elseif ($RegType -eq "protocol") {
                 Write-Info "Protocol: Trying to set $ProgId to $Extension"
-                Set-PTA -ProgId $ProgId -Extension $Extension 
+                try {
+                    # HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
+                    $ExtensionKeyPath = "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
+                    Set-RegistryPermission -rootKey 'CurrentUser' -key $ExtensionKeyPath 
+                    Set-PTA -ProgId $ProgId -Extension $Extension -Verbose
+                }
+                catch {
+                    Write-Error $_
+                }
+                
             }
             else {
                 Write-Info "RegType must either be fileext or protocol, did nothing with $Extension"
