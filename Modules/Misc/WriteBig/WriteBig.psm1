@@ -99,10 +99,10 @@ function Write-BigWord {
         [string]$Word,
         [string]$Type = "fill_hc",
 		[string]$RandomColors = "false", # overwrites other color values
-		[string]$ForegroundColorOne = $Host.UI.RawUI.ForegroundColor,
-		[string]$BackgroundColorOne = $Host.UI.RawUI.BackgroundColor,		
-		[string]$ForegroundColorZero = $Host.UI.RawUI.ForegroundColor,
-		[string]$BackgroundColorZero = $Host.UI.RawUI.BackgroundColor 
+		[string]$ForegroundColorOne,
+		[string]$BackgroundColorOne,		
+		[string]$ForegroundColorZero,
+		[string]$BackgroundColorZero 
     )
 
 	$letters = $Word.ToCharArray()
@@ -125,10 +125,10 @@ function Write-BigWord {
 			$BackgroundColorOne  = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
 			$BackgroundColorZero = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
 		}
-		while ($BackgroundColorOne -eq $ForegroundColorOne -or 
-			$BackgroundColorOne -eq $ForegroundColorZero -or 
-			$BackgroundColorZero -eq $ForegroundColorOne -or 
-			$BackgroundColorZero -eq $ForegroundColorZero)		
+		while (	$BackgroundColorOne -eq $ForegroundColorOne -or 
+				$BackgroundColorOne -eq $ForegroundColorZero -or 
+				$BackgroundColorZero -eq $ForegroundColorOne -or 
+				$BackgroundColorZero -eq $ForegroundColorZero)		
 	}
 	# generate a color per letter
 	elseif ($RandomColors -eq "letter") {
@@ -141,10 +141,10 @@ function Write-BigWord {
 			)) | Out-Null
 		}
 
-		if ($BackgroundColorZero -eq $Host.UI.RawUI.BackgroundColor) {
+		if (! $PSBoundParameters.ContainsKey('BackgroundColorZero')) {
 			$BackgroundColorZero = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
 		}
-		if ($ForeGroundColorZero -eq $Host.UI.RawUI.BackgroundColor) {
+		if (! $PSBoundParameters.ContainsKey('ForegroundColorZero')) {
 			$ForeGroundColorZero = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
 		}
 	}	
@@ -165,13 +165,23 @@ function Write-BigWord {
 				$ForegroundColorOne = $letterColors[$letterNum][0]
 				$BackgroundColorOne = $letterColors[$letterNum][1]
 			}
-            
+			            
             foreach ($Number in $drawLetter) {
 				if ($Number -eq 1) {
+					
+					if ($RandomColors -eq "one_anarchy") {						
+						$ForegroundColorOne  = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
+						$BackgroundColorOne  = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
+					}
 					#Write-Host "$Number $ForegroundColorOne $BackgroundColorOne"
 					Write-CharType -Number $Number -Type $Type -ForegroundColor $ForegroundColorOne -BackgroundColor $BackgroundColorOne
 				}
 				else {
+
+					if ($RandomColors -eq "zero_anarchy") {
+						$ForegroundColorZero  = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
+						$BackgroundColorZero  = $allColors[$(Get-Random -Minimum 0 -Maximum ($allColors.Count -1))]
+					}
 					#Write-Host "$Number $ForegroundColorZero $BackgroundColorZero"
 					Write-CharType -Number $Number -Type $Type -ForegroundColor $ForegroundColorZero -BackgroundColor $BackgroundColorZero
 				}                
@@ -382,8 +392,77 @@ z = @(
 	@(0, 0, 0, 0),
 	@(0, 1, 1, 0)
 )
+"0" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 1, 1, 0)
+)
+"1" = @(
+	@(0, 1, 1, 0, 0),
+	@(0, 0, 1, 0, 0),
+	@(0, 0, 1, 0, 0),
+	@(0, 0, 1, 0, 0),
+	@(0, 1, 1, 1, 0)
+)
+"2" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 0, 1, 0, 0),
+	@(0, 1, 0, 0, 0),
+	@(0, 1, 1, 1, 0)
+)
+"3" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 0, 1, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 1, 1, 1, 0)
+)
+"4" = @(
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 1, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 0, 0, 1, 0)
+)
+"5" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 1, 0, 0, 0),
+	@(0, 1, 1, 0, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 1, 1, 0, 0)
+)
+"6" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 1, 0, 0, 0),
+	@(0, 1, 1, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 1, 1, 0)
+)
+"7" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 0, 0, 1, 0)
+)
+"8" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 1, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 1, 1, 0)
+)
+"9" = @(
+	@(0, 1, 1, 1, 0),
+	@(0, 1, 0, 1, 0),
+	@(0, 1, 1, 1, 0),
+	@(0, 0, 0, 1, 0),
+	@(0, 1, 1, 1, 0)
+)
 
 }
-
 
 Export-ModuleMember -Function Write-BigWord

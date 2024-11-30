@@ -118,7 +118,7 @@ function Set-RegistryPermission {
     param (
         [string]$rootKey,
         [string]$key,
-        [System.Security.Principal.SecurityIdentifier]$sid = 'S-1-5-32-545', # SID for Users group
+        [System.Security.Principal.SecurityIdentifier]$sid = 'S-1-5-32-545', # <-- admin,  S-1-5-32-545 = SID for Users group
         [bool]$recurse = $true
     )
 

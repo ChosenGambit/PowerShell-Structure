@@ -1,141 +1,77 @@
-<#
-
-    Makes use of third party PS Script:
-    https://github.com/DanysysTeam/PS-SFTA
-    https://github.com/DanysysTeam/PS-SFTA/archive/refs/heads/master.zip
-
-#>
-
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Import-Module $PSScriptRoot\..\..\..\Root.psm1
 Initialize-Modules
 $global:WriteOutput = $True
 $global:WriteToLogFile = $True
 $global:LogFilePath = "$PSScriptRoot\..\..\..\.."
-Write-Info "--[Starting Default Apps Workflow Script @ $(Get-Date)]--" 
+Write-Info "--[Starting Turning off UCPD Script @ $(Get-Date)]--" 
 
-function Confirm-SetDefaultApps {    
+# First we turn of UCPD and reboot
+.$PSScriptRoot\turn_off_UCPD.ps1
 
-    $userInput = Read-Host "Please check if apps have been installed, continue with setting default apps? (Y/N)"
-
-    if ($userInput.ToLower() -eq "y") {        
-
-        $FileName = "PS-SFTA.zip"
-        $PS_SFTA_github = "https://github.com/ChosenGambit/PS-SFTA/archive/refs/heads/master.zip"       
-        $DependenciesPath = "$PSScriptRoot\..\..\..\..\Dependencies"
-        $FullZipPath = "$DependenciesPath\$FileName"
-        $unzippedPath = "PS-SFTA-master"
-        #$PS_SFTA_commits = "https://api.github.com/repos/DanysysTeam/PS-SFTA/commits"
-
-        if (! (Test-Path -Path "$DependenciesPath\$FileName")) {
-            Write-Info "Downloading PS-SFTA"
-            Invoke-WebRequest -Uri $PS_SFTA_github -OutFile $FullZipPath                        
-        }
-
-        Start-Sleep -Seconds 2
-
-        if (! (Test-Path -Path "$DependenciesPath\$unzippedPath")) {
-            Write-Info "Extracting PS-SFTA"
-            Expand-Archive -Path $FullZipPath -DestinationPath $DependenciesPath -Force -ErrorAction Continue
-        }        
-
-        Start-Sleep -Seconds 2
-
-        Export-RegistryHKCU -FilePath "$($PSScriptRoot)\..\..\..\.."
-
-        # load thirdparty script
-        Write-Info "Loading PS-SFTA"
-        .$("$DependenciesPath\$unzippedPath\SFTA.ps1")
-                
-        # read text file
-        try {
-            Write-Info "Loading def_app_reg.txt"
-            $content = (Get-Content -Path "$PSScriptRoot\..\..\..\..\def_app_reg.txt" -ErrorAction Stop) 
-        }
-        catch {
-            Write-Error "Could not open def_app_reg.txt"
-            return
-        }    
-
-        # iterate over each line
-        foreach ($line in $content) {
-            $split = $line.Split(";")
-            $Extension = [string] $split[0]
-            $RegType = [string] $split[1]
-            $ProgId = [string] $split[2]
-
-            # Change default program for file extension                        
-            if ($RegType -eq "fileext") {
-                Write-Info "Extension: Trying to set $ProgId to $Extension"
-                try {
-                    $FullKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
-                    $ExtensionKeyPath = "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
-
-                    # create register key is it does not exist
-                    if (-not (Test-Path $FullKeyPath)) {
-                        New-Item -Path $FullKeyPath -Force
-                        Write-Info "Created new registry key: $FullKeyPath"
-                    }   
-
-                    Set-RegistryPermission -rootKey 'CurrentUser' -key $ExtensionKeyPath 
-                    Set-FTA -ProgId $ProgId -Extension $Extension -Verbose
-                }
-                catch {
-                    Write-Error $_
-                }                
-            }
-            # Change default program for protocol
-            elseif ($RegType -eq "protocol") {
-                Write-Info "Protocol: Trying to set $ProgId to $Extension"
-                try {
-                    
-                    $FullKeyPath = "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
-                    $ExtensionKeyPath = "Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice"
-
-                    # create register key is it does not exist
-                    if (-not (Test-Path $FullKeyPath)) {
-                        New-Item -Path $FullKeyPath -Force
-                        Write-Info "Created new registry key: $FullKeyPath"
-                    }   
-                    
-                    Set-RegistryPermission -rootKey 'CurrentUser' -key $ExtensionKeyPath 
-                    Set-PTA -ProgId $ProgId -Protocol $Extension -Verbose
-                }
-                catch {
-                    Write-Error $_
-                }
-                
-            }
-            else {
-                Write-Info "RegType must either be fileext or protocol, did nothing with $Extension"
-            }            
-        }
-
-        # output status quo
-        Write-Status "Current registry settings: "
-        foreach ($line in $content) {
-            $split = $line.Split(";")
-            $Extension = [string] $split[0]
-            $RegType = [string] $split[1]
-            $ProgId = [string] $split[2]
-            
-            if ($RegType -eq "fileext") {
-                Write-Status " --> $Extension = $(Get-FTA -Extension $Extension)"
-            }
-            # Change default program for protocol
-            elseif ($RegType -eq "protocol") {
-                Write-Status " --> $Extension = $(Get-PTA -Protocol $Extension)"
-            }
-        }
-
-        [System.GC]::Collect()
-    }
-    else {
-        Write-Info "Aborted by user"
-    }
+# Disable: User Choice Protection Driver
+try {
+    Set-Service -Name UCPD -StartupType Disabled
+    Write-Info "Service UCPD disabled"
+}
+catch {
+    Write-Error "Error Disabling Service UCPD: $_"
 }
 
-Confirm-SetDefaultApps
+# Disable scheduled task to enable the ucpd
+try {
+    Disable-ScheduledTask -TaskName "\Microsoft\Windows\AppxDeploymentClient\UCPD velocity"
+    Write-Info "Scheduled UCPD velocity disabled"
+}
+catch {
+    Write-Error "Error Disabling UCPD Scheduled Task: $_"
+}
 
-@("Goodbye !", "Bye Bye !", "Thank you !") | Get-Random | Write-BigWord -RandomColors "letter"
+#Continu after reboot
+# Define the script path and task name
+$scriptPath = "$PSScriptRoot\edit_registry.ps1"
+$taskName = "CG_Edit_Registry_Script4"
 
+try {
+    $ourTask = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+    if ($ourTask) {
+        Unregister-ScheduledTask -TaskName $ourTask -Confirm:$false 
+    }    
+}
+catch {
+    Write-Info "No task found with name: $taskName"
+}
+
+# Create a scheduled task to run the script after reboot
+$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoExit -File `"$scriptPath`""
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(60) #-AtStartup 
+# $trigger.StartBoundary = [DateTime]::Now.AddSeconds(10).ToString("yyyy-MM-dd'T'HH:mm:ss")
+# $trigger.EndBoundary = [DateTime]::Now.AddMinutes(3).ToString("yyyy-MM-dd'T'HH:mm:ss")
+$principal = New-ScheduledTaskPrincipal -UserId "$env:USERNAME" -LogonType Interactive -RunLevel "Highest"
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -Compatibility Win8 #-DeleteExpiredTaskAfter (New-TimeSpan -Seconds 30) 
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force
+
+$ourTask = Get-ScheduledTask -TaskName $taskName 
+$OurTask.Triggers[0].StartBoundary = [DateTime]::Now.AddSeconds(60).ToString("yyyy-MM-dd'T'HH:mm:ss")
+$OurTask.Triggers[0].EndBoundary = [DateTime]::Now.AddMinutes(30).ToString("yyyy-MM-dd'T'HH:mm:ss")
+$OurTask.Settings.AllowHardTerminate = $True
+$OurTask.Settings.DeleteExpiredTaskAfter = 'PT0S'
+$OurTask.Settings.ExecutionTimeLimit = 'PT1H'
+$OurTask.Settings.volatile = $False
+$OurTask | Set-ScheduledTask
+
+Write-Info "Going to reboot ... "
+Write-Host -ForegroundColor DarkMagenta "Press Control+C to cancel rebooting, but doing so will still run the next script in 60 seconds"
+Write-Host -ForegroundColor Yellow "Do not remove USB device when script is run from it"
+$sleep = 4
+while ($sleep -gt 0) {    
+    #Write-BigWord -RandomColors "letter" -Word "$sleep" -ForegroundColorZero "DarkGray" -BackgroundColorZero "Black"
+    Write-BigWord -RandomColors "letter" -Word "$sleep" -ForegroundColorZero "Black" -BackgroundColorZero "DarkGray"
+    Start-Sleep -Seconds 2
+    $sleep--
+} 
+Write-BigWord -Word "Rebooting now" -BackgroundColorZero "Black" -ForegroundColorOne "Red" -BackgroundColorOne "Red" 
+Start-Sleep -Seconds 1
+
+#Reboot the system
+Restart-Computer -Force
