@@ -137,6 +137,12 @@ function Confirm-SetDefaultApps {
             }
         }
 
+        # Turn on UCPD again
+        Start-Sleep -Seconds 2
+        Write-Info "UCPD will be activated after next reboot"
+        Set-Service -Name UCPD -StartupType Automatic​
+        Enable-ScheduledTask -TaskName "\Microsoft\Windows\AppxDeploymentClient\UCPD velocity"
+
         [System.GC]::Collect()
     }
  
@@ -145,7 +151,6 @@ function Confirm-SetDefaultApps {
 Write-Status "Continueing registry script"
 Write-Host -ForegroundColor Cyan "Press Control+C to cancel"
 Write-Host -ForegroundColor Cyan "Do not remove USB device when script is run from it"
-Write-Host -ForegroundColor Cyan "In ... "
 $sleep = 5
 while ($sleep -gt 0) {    
     #Write-BigWord -RandomColors "letter" -Word "$sleep" -ForegroundColorZero "DarkGray" -BackgroundColorZero "Black"

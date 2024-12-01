@@ -63,11 +63,11 @@ $OurTask | Set-ScheduledTask
 Write-Info "Going to reboot ... "
 Write-Host -ForegroundColor DarkMagenta "Press Control+C to cancel rebooting, but doing so will still run the next script in 60 seconds"
 Write-Host -ForegroundColor Yellow "Do not remove USB device when script is run from it"
-$sleep = 4
+$sleep = 5
 while ($sleep -gt 0) {    
     #Write-BigWord -RandomColors "letter" -Word "$sleep" -ForegroundColorZero "DarkGray" -BackgroundColorZero "Black"
     Write-BigWord -RandomColors "letter" -Word "$sleep" -ForegroundColorZero "Black" -BackgroundColorZero "DarkGray"
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 1
     $sleep--
 } 
 Write-BigWord -Word "Rebooting now" -BackgroundColorZero "Black" -ForegroundColorOne "Red" -BackgroundColorOne "Red" 
