@@ -14,6 +14,10 @@ Change categories:
 
 ## [Unreleased]
 
+### 08-01-2025
+
+- **Added**: Workflow for powercfg default settings (hard-coded)
+
 ### 27-11-2024
 
 - **Added** Proxy design pattern for downloading Winget and Prerequisites (MSUIXaml, VCLibs)
