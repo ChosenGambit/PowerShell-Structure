@@ -2,7 +2,7 @@ function Export-DefaultAppAssociationsXML {
 
     <#
         .SYNOPSIS
-            Deployment Image Servicing and Management tool, export default app associations
+            Deployment Image Servicing and Management tool (DISM), export default app associations
             Then also backup this file
         .OUTPUTS
             DefaultAppAssoc.xml

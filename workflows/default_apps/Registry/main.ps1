@@ -7,9 +7,7 @@ $global:LogFilePath = "$PSScriptRoot\..\..\..\.."
 Write-Info "--[Starting Turning off UCPD Script @ $(Get-Date)]--" 
 
 # First we turn of UCPD and reboot
-.$PSScriptRoot\turn_off_UCPD.ps1
-
-# Disable: User Choice Protection Driver
+# Disable: User Choice Protection Driver (UCPD)
 try {
     Set-Service -Name UCPD -StartupType Disabled
     Write-Info "Service UCPD disabled"
