@@ -137,6 +137,8 @@ function Install-WithWinget {
         # check how to use winget as NuGet package or via cli
         $useCLI = $true
         try {
+            winget source update
+            Start-Sleep -Seconds 1
             $w = Get-Command winget -ErrorAction Stop # false when not available
             Write-Info "Using winget cli"
         }
