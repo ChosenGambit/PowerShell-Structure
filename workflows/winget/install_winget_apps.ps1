@@ -9,7 +9,6 @@ $global:WriteOutput = $True
 $global:WriteToLogFile = $True
 $global:LogFilePath = "$PSScriptRoot\..\..\.."
 Write-Info "--[Starting Install Apps Script @ $(Get-Date)]--" 
-winget source update --disable-interactivity
 
 if (! (Test-Path -Path $PSScriptRoot\..\..\..\apps.txt)) {
     Write-Alert "To install apps with winget, provide an apps.txt file with winget ID's inside on each line"
