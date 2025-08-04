@@ -78,7 +78,7 @@ function Confirm-SetDefaultApps {
                 Write-Info "Extension: Trying to set $ProgId to $Extension"
                 try {
                     $FullKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
-                    $ExtensionKeyPath = "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
+                    #$ExtensionKeyPath = "Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice"
 
                     # create register key is it does not exist
                     if (-not (Test-Path $FullKeyPath)) {

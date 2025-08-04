@@ -12,7 +12,13 @@ Change categories:
 - **Fixed**: Bug fixes.
 - **Security**: Security improvements.
 
-## [Unreleased]
+## [Version: Unreleased]
+
+### 04-08-2025
+
+- **Added**: Unity module to create Skeleton structure for either an asset package (store) or Unity Package Manager
+- **Added**: Workflow documentation for winget
+- **Fixed**: Unused variables and improvements for readme
 
 ### 08-01-2025
 
